@@ -1,332 +1,244 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>En mémoire de Grand-Papa</title>
-    <style>
-        :root {
-            --bg-main: #f9f7f2;
-            --bg-sheet: #ffffff;
-            --bg-photo: #f2efe6;
-            --accent-blue: #4e82b4;
-            --text-title: #1a1a1a;
-            --text-date: #9a938a;
-            --line-color: #d1ced0;
-            --font-serif: "Times New Roman", Times, serif;
-            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
 
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-main);
-            font-family: var(--font-sans);
-            color: var(--text-title);
-            -webkit-font-smoothing: antialiased;
-        }
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --cream:#FAF7F2;
+  --linen:#F0EBE1;
+  --ink:#2A2015;
+  --ink-muted:#6B5E4A;
+  --ink-faint:#9C8E7A;
+  --divider:rgba(107,94,74,0.15);
+  --blue:#378ADD;
+  --blue-light:#B5D4F4;
+  --blue-dark:#0C447C;
+}
 
-        .main-content {
-            padding: 50px 30px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
+.frame{max-width:390px;margin:0 auto;background:var(--color-background-secondary);border-radius:20px;padding:12px;}
+.screen{background:var(--cream);border-radius:14px;overflow:hidden;font-family:var(--font-sans);}
 
-        header h1 {
-            font-size: 2.4rem;
-            margin: 0;
-            font-weight: 500;
-            font-family: var(--font-serif);
-        }
+.app-header{
+  padding:28px 20px 18px;
+  border-bottom:0.5px solid var(--divider);
+  display:flex;align-items:baseline;justify-content:space-between;
+}
+.app-title{font-size:22px;font-weight:500;color:var(--ink);font-family:var(--font-serif);}
+.app-sub{font-size:12px;color:var(--ink-faint);letter-spacing:0.02em;}
 
-        header .lifespan {
-            color: var(--text-date);
-            font-size: 0.95rem;
-            margin-bottom: 50px;
-            font-family: var(--font-sans);
-            font-weight: 700;
-        }
+.feed{padding:0 0 36px;}
 
-        /* --- TIMELINE --- */
-        .timeline-container {
-            position: relative;
-        }
+.moment{
+  padding:20px 20px 20px;
+  border-bottom:0.5px solid var(--divider);
+}
+.moment:last-child{border-bottom:none;}
 
-        .timeline-container::before {
-            content: '';
-            position: absolute;
-            left: 9px;
-            top: 10px;
-            bottom: 25px;
-            width: 1px;
-            background-color: var(--line-color);
-            z-index: 0;
-        }
+.moment-year{
+  font-size:11px;
+  font-weight:500;
+  color:var(--blue);
+  letter-spacing:0.08em;
+  margin-bottom:3px;
+}
+.moment-title{
+  font-size:16px;font-weight:500;color:var(--ink);
+  line-height:1.25;margin-bottom:12px;
+}
 
-        .event-link {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 35px;
-            cursor: pointer;
-            position: relative;
-            z-index: 1;
-            -webkit-tap-highlight-color: transparent;
-        }
+.photo-strip{
+  display:flex;gap:8px;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  padding-bottom:2px;
+  margin-bottom:12px;
+}
+.photo-strip::-webkit-scrollbar{display:none;}
 
-        .dot-container {
-            margin-right: 18px;
-            margin-top: 4px;
-            background-color: var(--bg-main); 
-        }
+.photo-tile{
+  flex-shrink:0;
+  width:160px;height:112px;
+  border-radius:8px;
+  background:var(--linen);
+  border:0.5px dashed rgba(107,94,74,0.28);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;
+  overflow:hidden;
+  cursor:pointer;
+}
+.photo-tile:hover{background:#e8e2d8;}
+.photo-tile.sq{width:112px;}
+.photo-tile img{width:100%;height:100%;object-fit:cover;display:block;}
+.tile-icon{width:28px;height:28px;border-radius:50%;border:1px solid var(--ink-faint);display:flex;align-items:center;justify-content:center;}
+.tile-label{font-size:11px;color:var(--ink-faint);}
 
-        .dot {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: 2px solid var(--accent-blue);
-            background-color: transparent;
-            transition: background-color 0.3s ease;
-        }
+.strip-hint{
+  font-size:11px;color:var(--ink-faint);
+  display:flex;align-items:center;gap:5px;
+  margin-bottom:12px;
+}
+.hint-dots{display:flex;gap:3px;align-items:center;}
+.hint-dot{width:4px;height:4px;border-radius:50%;background:var(--blue-light);}
+.hint-dot.on{background:var(--blue);}
 
-        .event-link.active .dot {
-            background-color: var(--accent-blue);
-        }
+.moment-desc{
+  font-size:14px;color:var(--ink-muted);line-height:1.65;
+}
+</style>
 
-        .event-info .e-date {
-            font-size: 0.85rem;
-            color: var(--text-date);
-            margin-bottom: 2px;
-            font-family: var(--font-sans);
-            font-weight: 700;
-            display: block;
-        }
+<h2 style="position:absolute;width:1px;height:1px;overflow:hidden;">Mémorial — feed de moments de vie</h2>
 
-        .e-date::first-letter, .nav-date::first-letter {
-            text-transform: uppercase;
-        }
+<div class="frame">
+  <div class="screen">
 
-        .event-info .e-title {
-            font-size: 1.2rem;
-            font-weight: 500;
-            font-family: var(--font-serif);
-        }
-
-        /* --- BOTTOM SHEET (50%) --- */
-        .overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.1);
-            display: none;
-            z-index: 1000;
-        }
-
-        .bottom-sheet {
-            position: fixed;
-            bottom: -100%;
-            left: 0; right: 0;
-            background: var(--bg-sheet);
-            border-radius: 30px 30px 0 0;
-            padding: 15px 25px 95px; /* Ajusté pour laisser place à la nav */
-            transition: bottom 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 1001;
-            height: 50vh;
-            overflow-y: auto;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.05);
-        }
-
-        .bottom-sheet.active { bottom: 0; }
-
-        .drag-handle {
-            width: 40px;
-            height: 4px;
-            background: #f0f0f0;
-            border-radius: 2px;
-            margin: 0 auto 10px;
-        }
-
-        .close-btn {
-            position: absolute;
-            right: 25px;
-            top: 20px;
-            font-size: 26px;
-            color: #ccc;
-            cursor: pointer;
-        }
-
-        .sheet-title {
-            font-size: 1.6rem;
-            font-weight: 600;
-            margin: 15px 0 10px;
-            font-family: var(--font-serif);
-            padding-right: 30px;
-        }
-
-        .sheet-text {
-            font-size: 1rem;
-            line-height: 1.6;
-            color: #444;
-            margin-bottom: 20px;
-            font-family: var(--font-sans);
-        }
-
-        .photo-area {
-            width: 100%;
-            height: 180px; /* On gagne un peu de hauteur ici */
-            background-color: var(--bg-photo);
-            border-radius: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #b4aea4;
-            overflow: hidden;
-        }
-
-        .photo-area img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: none;
-        }
-
-        /* --- NAVIGATION BASSE SANS COMPTEUR --- */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            height: 80px;
-            background: white;
-            display: none;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 25px;
-            border-top: 1px solid #f5f5f5;
-            z-index: 1002;
-        }
-
-        .nav-circle {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            border: 1px solid #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fff;
-            color: #1a1a1a;
-            cursor: pointer;
-            font-size: 1.1rem;
-        }
-
-        .nav-date {
-            font-size: 0.9rem;
-            color: var(--text-date);
-            font-weight: 700;
-            font-family: var(--font-sans);
-            text-align: center;
-            flex: 1;
-        }
-    </style>
-</head>
-<body>
-
-<div class="main-content">
-    <header>
-        <h1>Grand-Papa</h1>
-        <div class="lifespan">1935 — 2026</div>
-    </header>
-    <div class="timeline-container" id="timeline-list"></div>
-</div>
-
-<div class="overlay" id="overlay" onclick="closeSheet()"></div>
-<div class="bottom-sheet" id="sheet">
-    <div class="drag-handle"></div>
-    <div class="close-btn" onclick="closeSheet()">×</div>
-    <div class="sheet-title" id="sheet-title"></div>
-    <div class="sheet-text" id="sheet-text"></div>
-    <div class="photo-area">
-        <img id="main-photo" src="" alt="Souvenir">
-        <div id="photo-placeholder" style="text-align: center;">
-            <div style="font-size: 24px; border: 1px solid #dcd9d0; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 5px;">📷</div>
-            <div style="font-size: 0.8rem;">Ajouter une photo</div>
-        </div>
+    <div class="app-header">
+      <div class="app-title">Grand-Papa</div>
+      <div class="app-sub">1935 – 2026</div>
     </div>
+
+    <div class="feed">
+
+      <div class="moment">
+        <div class="moment-year">11 décembre 1935</div>
+        <div class="moment-title">Naissance</div>
+        <div class="photo-strip">
+          <div class="photo-tile">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter une photo</span>
+          </div>
+          <div class="photo-tile sq">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter</span>
+          </div>
+        </div>
+        <div class="moment-desc">Premier souffle sur les bords du Saint-Laurent, dans une famille de cultivateurs établis depuis des générations.</div>
+      </div>
+
+      <div class="moment">
+        <div class="moment-year">Années 1940</div>
+        <div class="moment-title">L'enfance sur la ferme</div>
+        <div class="photo-strip">
+          <div class="photo-tile">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter une photo</span>
+          </div>
+          <div class="photo-tile sq">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter</span>
+          </div>
+        </div>
+        <div class="moment-desc">Les saisons rythmaient tout : les semailles, les récoltes, les grands repas où toute la famille se retrouvait. C'est là qu'il a appris que nourrir les autres, c'est les aimer.</div>
+      </div>
+
+      <div class="moment">
+        <div class="moment-year">Années 1950</div>
+        <div class="moment-title">Les Bermudes</div>
+        <div class="photo-strip">
+          <div class="photo-tile">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter une photo</span>
+          </div>
+        </div>
+        <div class="moment-desc">Jeune homme aventurier, il part travailler aux Bermudes — une expérience qui lui ouvrira les yeux sur le monde et qu'il racontera toute sa vie.</div>
+      </div>
+
+      <div class="moment">
+        <div class="moment-year">1958</div>
+        <div class="moment-title">Mariage</div>
+        <div class="photo-strip">
+          <div class="photo-tile">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter une photo</span>
+          </div>
+          <div class="photo-tile sq">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter</span>
+          </div>
+          <div class="photo-tile sq">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter</span>
+          </div>
+        </div>
+        <div class="strip-hint">
+          <div class="hint-dots"><div class="hint-dot on"></div><div class="hint-dot"></div><div class="hint-dot"></div></div>
+          <span>Glisser pour voir plus</span>
+        </div>
+        <div class="moment-desc">Union célébrée avec des dizaines de proches venus de partout. Le début d'une grande famille.</div>
+      </div>
+
+      <div class="moment">
+        <div class="moment-year">1961 – 1963</div>
+        <div class="moment-title">Naissance de Myriam et Josée</div>
+        <div class="photo-strip">
+          <div class="photo-tile">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter une photo</span>
+          </div>
+          <div class="photo-tile sq">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter</span>
+          </div>
+        </div>
+        <div class="moment-desc">L'arrivée de Myriam puis de Josée comble la maison de rires et de vie. Il devient père avec une tendresse que tous ceux qui l'ont connu se rappellent encore.</div>
+      </div>
+
+      <div class="moment">
+        <div class="moment-year">1990</div>
+        <div class="moment-title">La retraite</div>
+        <div class="photo-strip">
+          <div class="photo-tile">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter une photo</span>
+          </div>
+        </div>
+        <div class="moment-desc">Le jardin, la pêche dans le fleuve, et les petits-enfants. Il goûtait chaque heure avec le même appétit qu'un bon repas de famille.</div>
+      </div>
+
+      <div class="moment">
+        <div class="moment-year">2005</div>
+        <div class="moment-title">50 ans de mariage</div>
+        <div class="photo-strip">
+          <div class="photo-tile">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter une photo</span>
+          </div>
+          <div class="photo-tile sq">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter</span>
+          </div>
+        </div>
+        <div class="moment-desc">Noces d'or célébrées entouré de toute sa famille. Un homme qui rayonnait dans le regard de ceux qu'il aimait.</div>
+      </div>
+
+      <div class="moment">
+        <div class="moment-year">2025</div>
+        <div class="moment-title">Célébration de ses 90 ans</div>
+        <div class="photo-strip">
+          <div class="photo-tile">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter une photo</span>
+          </div>
+          <div class="photo-tile sq">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter</span>
+          </div>
+          <div class="photo-tile sq">
+            <div class="tile-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#9C8E7A" stroke-width="1.1"/><circle cx="7" cy="6.5" r="1.8" stroke="#9C8E7A" stroke-width="1.1"/></svg></div>
+            <span class="tile-label">Ajouter</span>
+          </div>
+        </div>
+        <div class="strip-hint">
+          <div class="hint-dots"><div class="hint-dot on"></div><div class="hint-dot"></div><div class="hint-dot"></div></div>
+          <span>Glisser pour voir plus</span>
+        </div>
+        <div class="moment-desc">La famille élargie se réunit pour fêter ses 90 ans — un homme entouré d'amour, de reconnaissance, et de tous ceux à qui il avait tant donné.</div>
+      </div>
+
+      <div class="moment">
+        <div class="moment-year">2026</div>
+        <div class="moment-title">Il nous a quittés</div>
+        <div class="moment-desc">Paisiblement, entouré des siens. Ses yeux bleus clairs ont fermé, mais sa chaleur, sa générosité et son amour de la vie demeurent en chacun de nous.</div>
+      </div>
+
+    </div>
+  </div>
 </div>
-
-<div class="bottom-nav" id="bottom-nav">
-    <div class="nav-circle" onclick="prevEvent()">⟨</div>
-    <div class="nav-date" id="nav-date"></div>
-    <div class="nav-circle" onclick="nextEvent()">⟩</div>
-</div>
-
-<script>
-    const events = [
-        { date: "11 décembre 1935", title: "Naissance", text: "Le premier chapitre d'une vie riche et bien remplie.", img: "" },
-        { date: "années 1940", title: "L'enfance sur la ferme", text: "Les saisons rythmaient tout : les semailles, les récoltes, les grands repas de famille.", img: "" },
-        { date: "années 1950", title: "Les Bermudes", text: "Ses premières grandes aventures et la découverte du monde.", img: "" },
-        { date: "1958", title: "Mariage", text: "Le début d'une vie de complicité avec Grand-Maman.", img: "" },
-        { date: "1961-1963", title: "Naissance de Myriam et Josée", text: "L'arrivée de ses filles, sa plus grande fierté.", img: "" },
-        { date: "1990", title: "La retraite", text: "Le temps de se consacrer à ses passions et à ses proches.", img: "" },
-        { date: "2005", title: "50 ans de mariage", text: "Un amour qui traverse le temps, célébré en famille.", img: "" },
-        { date: "2025", title: "Ses 90 ans", text: "Un jalon impressionnant célébré avec joie.", img: "" },
-        { date: "2026", title: "Il nous a quittés", text: "Un départ serein, laissant derrière lui un héritage de bonté.", img: "" }
-    ];
-
-    let currentIndex = 0;
-    const sheet = document.getElementById('sheet');
-    const overlay = document.getElementById('overlay');
-    const nav = document.getElementById('bottom-nav');
-
-    function init() {
-        const list = document.getElementById('timeline-list');
-        events.forEach((ev, idx) => {
-            const item = document.createElement('div');
-            item.className = 'event-link';
-            item.innerHTML = `
-                <div class="dot-container"><div class="dot"></div></div>
-                <div class="event-info"><div class="e-date">${ev.date}</div><div class="e-title">${ev.title}</div></div>
-            `;
-            item.onclick = () => openSheet(idx);
-            list.appendChild(item);
-        });
-    }
-
-    function openSheet(idx) {
-        currentIndex = idx;
-        updateSheet();
-        overlay.style.display = 'block';
-        nav.style.display = 'flex';
-        setTimeout(() => sheet.classList.add('active'), 10);
-    }
-
-    function closeSheet() {
-        sheet.classList.remove('active');
-        nav.style.display = 'none';
-        document.querySelectorAll('.event-link').forEach(el => el.classList.remove('active'));
-        setTimeout(() => overlay.style.display = 'none', 300);
-    }
-
-    function updateSheet() {
-        const ev = events[currentIndex];
-        document.querySelectorAll('.event-link').forEach((el, i) => {
-            if(i === currentIndex) el.classList.add('active');
-            else el.classList.remove('active');
-        });
-        
-        document.getElementById('sheet-title').innerText = ev.title;
-        document.getElementById('sheet-text').innerText = ev.text;
-        document.getElementById('nav-date').innerText = ev.date;
-        
-        const img = document.getElementById('main-photo');
-        const ph = document.getElementById('photo-placeholder');
-        if(ev.img) { img.src = ev.img; img.style.display = 'block'; ph.style.display = 'none'; }
-        else { img.style.display = 'none'; ph.style.display = 'block'; }
-    }
-
-    function nextEvent() { if(currentIndex < events.length - 1) { currentIndex++; updateSheet(); } }
-    function prevEvent() { if(currentIndex > 0) { currentIndex--; updateSheet(); } }
-
-    init();
-</script>
-
-</body>
-</html>
