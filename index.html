@@ -97,54 +97,56 @@
   }
   .tile-label { font-size: 12px; color: var(--ink-faint); }
 
-  /* ── Mosaïque pleine largeur (1, 2 ou 3 photos) ── */
-  .mosaic {
-    margin: 0 -24px 14px;
+  /*
+    Stratégie :
+    - .moment a padding-left: 24px pour le texte
+    - Les mosaïques s'échappent avec margin-left: -24px pour partir du bord gauche de l'écran
+    - Puis on réintroduit padding-left: 24px sur le conteneur flex
+    - overflow: hidden coupe à droite proprement
+    - Pour le strip scrollable : overflow-x: auto au lieu de hidden
+  */
+  /* Base commune — première tuile alignée avec le texte, s'arrête à la marge droite */
+  .mosaic, .strip {
+    margin: 0 0 14px -24px;
+    padding-left: 24px;
     height: var(--H);
     display: flex;
     gap: 3px;
     overflow: hidden;
   }
 
-  /* 1 photo : pleine largeur */
-  .mosaic.m1 .photo-tile { width: 100%; height: 100%; }
+  /* 1 photo — s'étend jusqu'à la marge droite */
+  .mosaic.m1 .photo-tile { flex: 1; height: 100%; min-width: 0; }
 
-  /* 2 photos : 60 / 40 */
-  .mosaic.m2 .photo-tile:nth-child(1) { width: 60%; height: 100%; }
-  .mosaic.m2 .photo-tile:nth-child(2) { width: calc(40% - 3px); height: 100%; }
+  /* 2 photos — grande gauche, petite droite */
+  .mosaic.m2 .photo-tile:nth-child(1) { width: 58%; height: 100%; flex-shrink: 0; }
+  .mosaic.m2 .photo-tile:nth-child(2) { flex: 1; height: 100%; min-width: 0; }
 
-  /* 3 photos : 58% gauche + colonne droite 2 empilées */
-  .mosaic.m3 .photo-tile.main { width: 58%; height: 100%; }
+  /* 3 photos — grande gauche + 2 empilées droite */
+  .mosaic.m3 .photo-tile.main { width: 54%; height: 100%; flex-shrink: 0; }
   .mosaic.m3 .col {
     display: flex;
     flex-direction: column;
     gap: 3px;
-    width: calc(42% - 3px);
+    flex: 1;
+    min-width: 0;
   }
-  .mosaic.m3 .col .photo-tile {
-    width: 100%;
-    height: calc(50% - 1.5px);
-  }
+  .mosaic.m3 .col .photo-tile { width: 100%; flex: 1; }
 
-  /* ── Strip scrollable (4+ photos) ── */
+  /* 4+ photos — strip scrollable, déborde jusqu'au bord de l'écran, crop intentionnel */
   .strip {
-    margin: 0 -24px 14px;
-    height: var(--H);
-    display: flex;
-    gap: 3px;
+    margin-right: -24px;  /* déborde à droite jusqu'au bord */
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding-left: 24px;
-    /* pas de padding-right : crop intentionnel à droite */
   }
   .strip::-webkit-scrollbar { display: none; }
   .strip .photo-tile {
-    /* largeur fixe = ~80% écran pour que la suivante soit visible et croppée */
-    width: 72vw;
-    max-width: 300px;
+    width: 70vw;
+    max-width: 280px;
     height: 100%;
+    flex-shrink: 0;
   }
 
   .moment-desc {
