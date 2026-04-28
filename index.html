@@ -105,14 +105,32 @@
     - overflow: hidden coupe à droite proprement
     - Pour le strip scrollable : overflow-x: auto au lieu de hidden
   */
-  /* Base commune — première tuile alignée avec le texte, s'arrête à la marge droite */
+  /* Base commune */
   .mosaic, .strip {
     margin: 0 0 14px -24px;
     padding-left: 24px;
     height: var(--H);
     display: flex;
     gap: 3px;
-    overflow: hidden;
+  }
+
+  /* Mosaïque fixe — coupe à droite à la marge */
+  .mosaic { overflow: hidden; }
+
+  /* Strip scrollable — déborde jusqu'au bord droit, scroll horizontal */
+  .strip {
+    margin-right: -24px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .strip::-webkit-scrollbar { display: none; }
+  .strip .photo-tile {
+    width: 70vw;
+    max-width: 280px;
+    height: 100%;
+    flex-shrink: 0;
   }
 
   /* 1 photo — s'étend jusqu'à la marge droite */
@@ -137,21 +155,17 @@
   .mosaic.m2-strip .photo-tile { flex: 1; height: 100%; min-width: 0; }
   .mosaic.m3-strip .photo-tile { flex: 1; height: 100%; min-width: 0; }
 
-  /* 4+ photos — strip scrollable, déborde jusqu'au bord de l'écran, crop intentionnel */
-  .strip {
-    margin-right: -24px;  /* déborde à droite jusqu'au bord */
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .strip::-webkit-scrollbar { display: none; }
-  .strip .photo-tile {
-    width: 70vw;
-    max-width: 280px;
-    height: 100%;
+  /* 4 photos mixed : grande gauche | 2 empilées centre | grande droite */
+  .mosaic.m4-mixed .photo-tile.main-left  { width: 38%; height: 100%; flex-shrink: 0; }
+  .mosaic.m4-mixed .col {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 24%;
     flex-shrink: 0;
   }
+  .mosaic.m4-mixed .col .photo-tile { width: 100%; flex: 1; }
+  .mosaic.m4-mixed .photo-tile.main-right { flex: 1; height: 100%; min-width: 0; }
 
   .moment-desc {
     font-size: 14px;
@@ -297,21 +311,24 @@
        title:    "Mariage",
        desc:     "Texte descriptif.",
 
-       // ── Contrôles optionnels du moment ───────────────────
-       scroll:   false,       // true  = strip scrollable horizontal (forcé)
-                              // false = mosaïque fixe (défaut)
-                              // Note : 4+ photos avec layout:"strip" → toujours scrollable
-
-       position: "top",       // cadrage vertical par défaut pour toutes les photos :
-                              //   "top"    = depuis le haut — bon pour les visages (défaut)
-                              //   "center" = centré
-                              //   "bottom" = depuis le bas
-                              // Chaque photo peut avoir son propre position (voir ci-dessous)
-
-       layout:   "mixed",     // disposition des photos :
-                              //   "mixed" = pattern grande+colonne de 2 qui se répète
-                              //             (fonctionne avec 1, 2, 3, 6, 9 photos...)
-                              //   "strip" = toutes côte à côte de largeur égale
+       // ── Contrôle de disposition ───────────────────────────
+       layout: "mixed",  // UNE SEULE VALEUR SUFFIT :
+                         //
+                         // "mixed" → mosaïque fixe pleine largeur (défaut)
+                         //   1 photo  : pleine largeur
+                         //   2 photos : grande gauche / petite droite
+                         //   3 photos : grande gauche / 2 empilées droite
+                         //   4 photos : photo1 | 2+3 empilées | photo4
+                         //   5+ photos: strip à 2 colonnes automatiquement
+                         //
+                         // UN NOMBRE → strip scrollable adaptatif
+                         //   layout: 1    1 photo pleine largeur, les autres scrollent
+                         //   layout: 2    2 photos visibles simultanément
+                         //   layout: 2.5  2 photos + aperçu de la 3e
+                         //   layout: 3    3 photos visibles simultanément
+                         //
+                         //   Fonctionne sur tous les écrans — iPhone, Android,
+                         //   tablette, portrait et paysage.
 
        // ── Photos ───────────────────────────────────────────
        photos: [
@@ -321,19 +338,12 @@
        ]
      },
 
-   RÈGLES DE MOSAÏQUE (automatiques selon layout et scroll) :
+   RÉSUMÉ :
    ─────────────────────────────────────────────────────────────
-   layout:"mixed" (défaut) :
-     • 1 photo        → pleine largeur
-     • 2 photos       → grande gauche / petite droite
-     • 3 photos       → grande gauche / 2 empilées droite
-     • 6 photos       → 2 blocs de 3 empilés verticalement
-     • 9 photos       → 3 blocs de 3, etc.
-     • scroll:true    → force le strip peu importe le nombre
-
-   layout:"strip" :
-     • 1-3 photos     → côte à côte égaux, largeur fixe
-     • 4+ photos      → strip scrollable automatiquement
+   layout: "mixed"  →  mosaïque fixe, pleine largeur, pas de scroll
+   layout: 2        →  strip scrollable, 2 colonnes visibles
+   layout: 2.5      →  strip scrollable, aperçu de la photo suivante visible
+   position par photo : "top" | "center" | "bottom"ment
 
    AJOUTER UNE PHOTO :
      Mets le fichier dans un dossier "photos/" à côté de ce HTML,
@@ -347,6 +357,8 @@ const MOMENTS = [
     year: "11 décembre 1935",
     title: "Naissance",
     desc: "Premier souffle sur les bords du Saint-Laurent, dans une famille de cultivateurs établis depuis des générations.",
+    layout: "mixed",   // 2 photos → grande gauche / petite droite
+    position: "top",
     photos: [
       { src: null, caption: "" },
       { src: null, caption: "" },
@@ -356,6 +368,8 @@ const MOMENTS = [
     year: "Années 1940",
     title: "L'enfance sur la ferme",
     desc: "Les saisons rythmaient tout : les semailles, les récoltes, les grands repas où toute la famille se retrouvait. C'est là qu'il a appris que nourrir les autres, c'est les aimer.",
+    layout: 1.15,      // scroll : 1 photo presque pleine largeur, aperçu de la suivante
+    position: "top",
     photos: [
       { src: null, caption: "" },
       { src: null, caption: "" },
@@ -366,6 +380,8 @@ const MOMENTS = [
     year: "Années 1950",
     title: "Les Bermudes",
     desc: "Jeune homme aventurier, il part travailler aux Bermudes — une expérience qui lui ouvrira les yeux sur le monde et qu'il racontera toute sa vie.",
+    layout: "mixed",   // 1 photo → pleine largeur
+    position: "center",
     photos: [
       { src: null, caption: "De gauche à droite : Grand-Papa, son ami Roger, la pension où il logeait" },
     ]
@@ -374,6 +390,8 @@ const MOMENTS = [
     year: "1958",
     title: "Mariage",
     desc: "Union célébrée avec des dizaines de proches venus de partout. Le début d'une grande famille.",
+    layout: 2.3,       // scroll : 2 photos visibles, aperçu de la 3e croppée à droite
+    position: "top",
     photos: [
       { src: null, caption: "À l'église du village" },
       { src: null, caption: "De gauche à droite : Grand-Papa, Grand-Maman, le curé Tremblay" },
@@ -385,6 +403,8 @@ const MOMENTS = [
     year: "1961 – 1963",
     title: "Naissance de Myriam et Josée",
     desc: "L'arrivée de Myriam puis de Josée comble la maison de rires et de vie. Il devient père avec une tendresse que tous ceux qui l'ont connu se rappellent encore.",
+    layout: "mixed",   // 2 photos → grande gauche / petite droite
+    position: "top",
     photos: [
       { src: null, caption: "Myriam, quelques heures après sa naissance" },
       { src: null, caption: "" },
@@ -394,7 +414,11 @@ const MOMENTS = [
     year: "1990",
     title: "La retraite",
     desc: "Le jardin, la pêche dans le fleuve, et les petits-enfants. Il goûtait chaque heure avec le même appétit qu'un bon repas de famille.",
+    layout: "mixed",   // 3 photos → grande gauche / 2 empilées droite
+    position: "top",
     photos: [
+      { src: null, caption: "" },
+      { src: null, caption: "" },
       { src: null, caption: "" },
     ]
   },
@@ -402,6 +426,8 @@ const MOMENTS = [
     year: "2005",
     title: "50 ans de mariage",
     desc: "Noces d'or célébrées entouré de toute sa famille. Un homme qui rayonnait dans le regard de ceux qu'il aimait.",
+    layout: 1.8,       // scroll : presque 2 photos visibles, la 3e croppée à droite
+    position: "center",
     photos: [
       { src: null, caption: "" },
       { src: null, caption: "" },
@@ -412,6 +438,8 @@ const MOMENTS = [
     year: "2025",
     title: "Célébration de ses 90 ans",
     desc: "La famille élargie se réunit pour fêter ses 90 ans — un homme entouré d'amour, de reconnaissance, et de tous ceux à qui il avait tant donné.",
+    layout: "mixed",   // 4 photos → photo1 | 2+3 empilées | photo4
+    position: "top",
     photos: [
       { src: null, caption: "De gauche à droite : Myriam, Grand-Papa, Josée et leurs familles" },
       { src: null, caption: "" },
@@ -423,6 +451,7 @@ const MOMENTS = [
     year: "2026",
     title: "Il nous a quittés",
     desc: "Paisiblement, entouré des siens. Ses yeux bleus clairs ont fermé, mais sa chaleur, sa générosité et son amour de la vie demeurent en chacun de nous.",
+    layout: "mixed",   // 0 photo → aucune mosaïque
     photos: []
   },
 ];
@@ -514,40 +543,56 @@ function buildMosaic(mi, m) {
   if (n === 0) return '';
 
   const defaultPos = m.position || 'top';
-  const scroll     = m.scroll === true;
-  const layout     = m.layout || 'mixed';
+  const layout     = m.layout !== undefined ? m.layout : 'mixed';
 
-  // Strip scrollable — forcé par scroll:true OU 4+ photos avec layout:strip
-  if (scroll || (n >= 4 && layout === 'strip')) {
-    const tiles = photos.map((p,pi) => tile(mi,pi,p,'',defaultPos)).join('');
+  // layout est un nombre → strip scrollable adaptatif
+  // la largeur de chaque tuile = 100% / columns, calculée en vw
+  if (typeof layout === 'number') {
+    const vw = (100 / layout).toFixed(1);
+    const tiles = photos.map((p,pi) =>
+      `<div class="photo-tile strip-tile" style="width:${vw}vw;height:100%;flex-shrink:0;" onclick="openLightbox(${mi},${pi})">
+        ${p.src ? `<img src="${p.src}" alt="${p.caption||''}" style="object-position:${p.position||defaultPos};">` : ICON}
+      </div>`
+    ).join('');
     return `<div class="strip">${tiles}</div>`;
   }
 
-  // Layout mixed — pattern grande+colonne qui se répète
-  if (layout === 'mixed') {
-    return mixedBlocks(mi, photos, defaultPos);
-  }
-
-  // Layout strip avec 1, 2 ou 3 photos — côte à côte égaux
+  // layout:"mixed" → mosaïque fixe pleine largeur
   if (n === 1) {
     return `<div class="mosaic m1">${tile(mi,0,photos[0],'',defaultPos)}</div>`;
   }
   if (n === 2) {
-    return `<div class="mosaic m2-strip">
+    return `<div class="mosaic m2">
       ${tile(mi,0,photos[0],'',defaultPos)}
       ${tile(mi,1,photos[1],'',defaultPos)}
     </div>`;
   }
   if (n === 3) {
-    return `<div class="mosaic m3-strip">
-      ${tile(mi,0,photos[0],'',defaultPos)}
-      ${tile(mi,1,photos[1],'',defaultPos)}
-      ${tile(mi,2,photos[2],'',defaultPos)}
+    return `<div class="mosaic m3">
+      ${tile(mi,0,photos[0],'main',defaultPos)}
+      <div class="col">
+        ${tile(mi,1,photos[1],'',defaultPos)}
+        ${tile(mi,2,photos[2],'',defaultPos)}
+      </div>
+    </div>`;
+  }
+  if (n === 4) {
+    return `<div class="mosaic m4-mixed">
+      ${tile(mi,0,photos[0],'main-left',defaultPos)}
+      <div class="col">
+        ${tile(mi,1,photos[1],'',defaultPos)}
+        ${tile(mi,2,photos[2],'',defaultPos)}
+      </div>
+      ${tile(mi,3,photos[3],'main-right',defaultPos)}
     </div>`;
   }
 
-  // 4+ avec layout:strip → strip scrollable
-  const tiles = photos.map((p,pi) => tile(mi,pi,p,'',defaultPos)).join('');
+  // mixed avec 5+ photos → strip à 2 colonnes par défaut
+  const tiles = photos.map((p,pi) =>
+    `<div class="photo-tile strip-tile" style="width:50vw;height:100%;flex-shrink:0;" onclick="openLightbox(${mi},${pi})">
+      ${p.src ? `<img src="${p.src}" alt="${p.caption||''}" style="object-position:${p.position||defaultPos};">` : ICON}
+    </div>`
+  ).join('');
   return `<div class="strip">${tiles}</div>`;
 }
 
