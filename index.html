@@ -88,7 +88,8 @@
     transition: opacity 0.12s;
   }
   .photo-tile:active { opacity: 0.75; }
-  .photo-tile img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }  .tile-icon {
+  .photo-tile img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .tile-icon {
     width: 32px; height: 32px;
     border-radius: 50%;
     border: 1px solid var(--ink-faint);
@@ -131,6 +132,10 @@
     min-width: 0;
   }
   .mosaic.m3 .col .photo-tile { width: 100%; flex: 1; }
+
+  /* layout:strip — toutes les photos côte à côte égales */
+  .mosaic.m2-strip .photo-tile { flex: 1; height: 100%; min-width: 0; }
+  .mosaic.m3-strip .photo-tile { flex: 1; height: 100%; min-width: 0; }
 
   /* 4+ photos — strip scrollable, déborde jusqu'au bord de l'écran, crop intentionnel */
   .strip {
@@ -288,36 +293,53 @@
    Chaque moment se définit comme ceci :
 
      {
-       year:   "1958",               ← date ou période affichée
-       title:  "Mariage",            ← titre du moment
-       desc:   "Texte descriptif.",  ← paragraphe sous les photos
-       photos: [                     ← liste de photos (peut être vide)
-         { src: "photos/img1.jpg", caption: "Légende optionnelle" },
-         { src: "photos/img2.jpg", caption: "" },
+       year:     "1958",
+       title:    "Mariage",
+       desc:     "Texte descriptif.",
+
+       // ── Contrôles optionnels du moment ───────────────────
+       scroll:   false,       // true  = strip scrollable horizontal (forcé)
+                              // false = mosaïque fixe (défaut)
+                              // Note : 4+ photos avec layout:"strip" → toujours scrollable
+
+       position: "top",       // cadrage vertical par défaut pour toutes les photos :
+                              //   "top"    = depuis le haut — bon pour les visages (défaut)
+                              //   "center" = centré
+                              //   "bottom" = depuis le bas
+                              // Chaque photo peut avoir son propre position (voir ci-dessous)
+
+       layout:   "mixed",     // disposition des photos :
+                              //   "mixed" = pattern grande+colonne de 2 qui se répète
+                              //             (fonctionne avec 1, 2, 3, 6, 9 photos...)
+                              //   "strip" = toutes côte à côte de largeur égale
+
+       // ── Photos ───────────────────────────────────────────
+       photos: [
+         { src: "photos/img1.jpg", caption: "Légende",   position: "top"    },
+         { src: "photos/img2.jpg", caption: "",           position: "center" },
+         { src: null,              caption: "" },  // hérite du position du moment
        ]
      },
 
-   RÈGLES PHOTOS :
+   RÈGLES DE MOSAÏQUE (automatiques selon layout et scroll) :
    ─────────────────────────────────────────────────────────────
-   • 0 photo  → aucune mosaïque, juste le texte
-   • 1 photo  → pleine largeur
-   • 2 photos → grande à gauche, petite à droite
-   • 3 photos → grande à gauche, 2 empilées à droite (pleine largeur)
-   • 4 photos et + → strip scrollable horizontal, photos croppées
-                     (la dernière visible partiellement = invite à scroller)
+   layout:"mixed" (défaut) :
+     • 1 photo        → pleine largeur
+     • 2 photos       → grande gauche / petite droite
+     • 3 photos       → grande gauche / 2 empilées droite
+     • 6 photos       → 2 blocs de 3 empilés verticalement
+     • 9 photos       → 3 blocs de 3, etc.
+     • scroll:true    → force le strip peu importe le nombre
+
+   layout:"strip" :
+     • 1-3 photos     → côte à côte égaux, largeur fixe
+     • 4+ photos      → strip scrollable automatiquement
 
    AJOUTER UNE PHOTO :
-     1. Mets le fichier image dans un dossier "photos/" à côté de ce fichier HTML
-     2. Dans src, écris le chemin : "photos/nom-du-fichier.jpg"
-     3. Si tu utilises une URL en ligne : "https://exemple.com/photo.jpg"
-     4. Pour une photo pas encore disponible, mets : null
-
-   AJOUTER UN MOMENT :
-     Copie un bloc { ... }, colle-le dans la liste, et modifie le contenu.
-     Assure-toi de mettre une virgule après chaque bloc sauf le dernier.
-
-   CAPTION :
-     Optionnelle. Si tu n'en veux pas, laisse : caption: ""
+     Mets le fichier dans un dossier "photos/" à côté de ce HTML,
+     puis écris : src: "photos/nom.jpg"
+     URL en ligne : src: "https://..."
+     Pas encore disponible : src: null
    ================================================================ */
 
 const MOMENTS = [
@@ -335,8 +357,8 @@ const MOMENTS = [
     title: "L'enfance sur la ferme",
     desc: "Les saisons rythmaient tout : les semailles, les récoltes, les grands repas où toute la famille se retrouvait. C'est là qu'il a appris que nourrir les autres, c'est les aimer.",
     photos: [
-      { src: "photos/sultans.png", caption: "Une image de sultans juste pour tester" },
-      { src: "photos/gangpizza.jpeg", caption: "" },
+      { src: null, caption: "" },
+      { src: null, caption: "" },
       { src: null, caption: "" },
     ]
   },
@@ -349,12 +371,14 @@ const MOMENTS = [
     ]
   },
   {
-    year: "16 juillet 1960",
+    year: "1958",
     title: "Mariage",
     desc: "Union célébrée avec des dizaines de proches venus de partout. Le début d'une grande famille.",
     photos: [
-      { src: "photos/mariage3.jpeg", caption: "À l'église St-Clément de Beauharnois" },
-      { src: "photos/mariage.jpeg", caption: "" },
+      { src: null, caption: "À l'église du village" },
+      { src: null, caption: "De gauche à droite : Grand-Papa, Grand-Maman, le curé Tremblay" },
+      { src: null, caption: "" },
+      { src: null, caption: "" },
     ]
   },
   {
@@ -450,42 +474,80 @@ const ICON = `<div class="tile-icon">
     <circle cx="8" cy="8" r="2.5" stroke="#9C8E7A" stroke-width="1.2"/>
   </svg></div><span class="tile-label">Photo à venir</span>`;
 
-function tile(mi, pi, p, extraClass) {
+function tile(mi, pi, p, extraClass, defaultPos) {
   const cls = 'photo-tile' + (extraClass ? ' ' + extraClass : '');
-  const inner = p.src ? `<img src="${p.src}" alt="${p.caption||''}">` : ICON;
+  const pos = p.position || defaultPos || 'top';
+  const inner = p.src
+    ? `<img src="${p.src}" alt="${p.caption||''}" style="object-position:${pos};">`
+    : ICON;
   return `<div class="${cls}" onclick="openLightbox(${mi},${pi})">${inner}</div>`;
 }
 
-function buildMosaic(mi, photos) {
+function mixedBlocks(mi, photos, defaultPos) {
+  // Découpe les photos en blocs de 3, le pattern grande+colonne se répète
+  let html = '';
+  for (let i = 0; i < photos.length; i += 3) {
+    const chunk = photos.slice(i, i + 3);
+    if (chunk.length === 1) {
+      html += `<div class="mosaic m1">${tile(mi, i, chunk[0], '', defaultPos)}</div>`;
+    } else if (chunk.length === 2) {
+      html += `<div class="mosaic m2">
+        ${tile(mi, i,   chunk[0], '', defaultPos)}
+        ${tile(mi, i+1, chunk[1], '', defaultPos)}
+      </div>`;
+    } else {
+      html += `<div class="mosaic m3">
+        ${tile(mi, i,   chunk[0], 'main', defaultPos)}
+        <div class="col">
+          ${tile(mi, i+1, chunk[1], '', defaultPos)}
+          ${tile(mi, i+2, chunk[2], '', defaultPos)}
+        </div>
+      </div>`;
+    }
+  }
+  return html;
+}
+
+function buildMosaic(mi, m) {
+  const photos = m.photos;
   const n = photos.length;
   if (n === 0) return '';
 
-  // 1 photo — pleine largeur
+  const defaultPos = m.position || 'top';
+  const scroll     = m.scroll === true;
+  const layout     = m.layout || 'mixed';
+
+  // Strip scrollable — forcé par scroll:true OU 4+ photos avec layout:strip
+  if (scroll || (n >= 4 && layout === 'strip')) {
+    const tiles = photos.map((p,pi) => tile(mi,pi,p,'',defaultPos)).join('');
+    return `<div class="strip">${tiles}</div>`;
+  }
+
+  // Layout mixed — pattern grande+colonne qui se répète
+  if (layout === 'mixed') {
+    return mixedBlocks(mi, photos, defaultPos);
+  }
+
+  // Layout strip avec 1, 2 ou 3 photos — côte à côte égaux
   if (n === 1) {
-    return `<div class="mosaic m1">${tile(mi,0,photos[0],'')}</div>`;
+    return `<div class="mosaic m1">${tile(mi,0,photos[0],'',defaultPos)}</div>`;
   }
-
-  // 2 photos — grande gauche + petite droite
   if (n === 2) {
-    return `<div class="mosaic m2">
-      ${tile(mi,0,photos[0],'')}
-      ${tile(mi,1,photos[1],'')}
+    return `<div class="mosaic m2-strip">
+      ${tile(mi,0,photos[0],'',defaultPos)}
+      ${tile(mi,1,photos[1],'',defaultPos)}
     </div>`;
   }
-
-  // 3 photos — grande gauche + 2 empilées droite, pleine largeur
   if (n === 3) {
-    return `<div class="mosaic m3">
-      ${tile(mi,0,photos[0],'main')}
-      <div class="col">
-        ${tile(mi,1,photos[1],'')}
-        ${tile(mi,2,photos[2],'')}
-      </div>
+    return `<div class="mosaic m3-strip">
+      ${tile(mi,0,photos[0],'',defaultPos)}
+      ${tile(mi,1,photos[1],'',defaultPos)}
+      ${tile(mi,2,photos[2],'',defaultPos)}
     </div>`;
   }
 
-  // 4+ photos — strip scrollable, crop = invite à scroller
-  const tiles = photos.map((p,pi) => tile(mi,pi,p,'')).join('');
+  // 4+ avec layout:strip → strip scrollable
+  const tiles = photos.map((p,pi) => tile(mi,pi,p,'',defaultPos)).join('');
   return `<div class="strip">${tiles}</div>`;
 }
 
@@ -497,7 +559,7 @@ function renderFeed() {
     div.innerHTML = `
       <div class="moment-year">${m.year}</div>
       <div class="moment-title">${m.title}</div>
-      ${buildMosaic(mi, m.photos)}
+      ${buildMosaic(mi, m)}
       <div class="moment-desc">${m.desc}</div>`;
     feed.appendChild(div);
   });
