@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grand-Papa — 1935–2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #FAF7F2;
+    --linen: #F0EBE1;
+    --ink: #2A2015;
+    --ink-muted: #6B5E4A;
+    --ink-faint: #9C8E7A;
+    --divider: rgba(107,94,74,0.15);
+    --blue: #378ADD;
+    --blue-light: #B5D4F4;
+    --H: 220px; /* hauteur fixe de toutes les mosaïques */
+  }
+
+  html, body {
+    min-height: 100%;
+    width: 100%;
+    max-width: 100%;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    overflow-x: hidden;
+  }
+
+  .app-header {
+    padding: 52px 24px 20px;
+    border-bottom: 0.5px solid var(--divider);
+  }
+  .app-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+  .app-sub {
+    font-size: 13px;
+    color: var(--ink-faint);
+    margin-top: 5px;
+    letter-spacing: 0.02em;
+  }
+
+  .feed { padding-bottom: 64px; }
+  .moment { padding: 28px 24px 0; }
+
+  .moment-year {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--blue);
+    letter-spacing: 0.08em;
+    margin-bottom: 3px;
+    text-transform: uppercase;
+  }
+  .moment-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.25;
+    margin-bottom: 14px;
+  }
+
+  /* ── Tuile de base ── */
+  .photo-tile {
+    background: var(--linen);
+    border: 0.5px dashed rgba(107,94,74,0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.12s;
+  }
+  .photo-tile:active { opacity: 0.75; }
+  .photo-tile img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .tile-icon {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--ink-faint);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tile-label { font-size: 12px; color: var(--ink-faint); }
+
+  /*
+    Stratégie :
+    - .moment a padding-left: 24px pour le texte
+    - Les mosaïques s'échappent avec margin-left: -24px pour partir du bord gauche de l'écran
+    - Puis on réintroduit padding-left: 24px sur le conteneur flex
+    - overflow: hidden coupe à droite proprement
+    - Pour le strip scrollable : overflow-x: auto au lieu de hidden
+  */
+  /* Base commune */
+  .mosaic, .strip {
+    margin: 0 0 14px -24px;
+    padding-left: 24px;
+    height: var(--H);
+    display: flex;
+    gap: 3px;
+  }
+
+  /* Mosaïque fixe — coupe à droite à la marge */
+  .mosaic { overflow: hidden; }
+
+  /* Strip scrollable — déborde jusqu'au bord droit, scroll horizontal */
+  .strip {
+    margin-right: -24px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .strip::-webkit-scrollbar { display: none; }
+  .strip .photo-tile {
+    width: 70vw;
+    max-width: 280px;
+    height: 100%;
+    flex-shrink: 0;
+  }
+
+  /* 1 photo — s'étend jusqu'à la marge droite */
+  .mosaic.m1 .photo-tile { flex: 1; height: 100%; min-width: 0; }
+
+  /* 2 photos — grande gauche, petite droite */
+  .mosaic.m2 .photo-tile:nth-child(1) { width: 58%; height: 100%; flex-shrink: 0; }
+  .mosaic.m2 .photo-tile:nth-child(2) { flex: 1; height: 100%; min-width: 0; }
+
+  /* 3 photos — grande gauche + 2 empilées droite */
+  .mosaic.m3 .photo-tile.main { width: 54%; height: 100%; flex-shrink: 0; }
+  .mosaic.m3 .col {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    min-width: 0;
+  }
+  .mosaic.m3 .col .photo-tile { width: 100%; flex: 1; }
+
+  /* layout:strip — toutes les photos côte à côte égales */
+  .mosaic.m2-strip .photo-tile { flex: 1; height: 100%; min-width: 0; }
+  .mosaic.m3-strip .photo-tile { flex: 1; height: 100%; min-width: 0; }
+
+  /* 4 photos mixed : grande gauche | 2 empilées centre | grande droite */
+  .mosaic.m4-mixed .photo-tile.main-left  { width: 38%; height: 100%; flex-shrink: 0; }
+  .mosaic.m4-mixed .col {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 24%;
+    flex-shrink: 0;
+  }
+  .mosaic.m4-mixed .col .photo-tile { width: 100%; flex: 1; }
+  .mosaic.m4-mixed .photo-tile.main-right { flex: 1; height: 100%; min-width: 0; }
+
+  .moment-desc {
+    font-size: 14px;
+    color: var(--ink-muted);
+    line-height: 1.7;
+    padding-bottom: 28px;
+    border-bottom: 0.5px solid var(--divider);
+  }
+  .moment:last-child .moment-desc { border-bottom: none; }
+
+  /* ── Lightbox ── */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background: #1A1208;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .lightbox.open { opacity: 1; pointer-events: all; }
+
+  .lb-top {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: 14px 12px 8px;
+    gap: 8px;
+  }
+  @supports (padding-top: env(safe-area-inset-top)) {
+    .lb-top { padding-top: calc(env(safe-area-inset-top) + 10px); }
+    .lb-bottom { padding-bottom: calc(env(safe-area-inset-bottom) + 12px) !important; }
+  }
+
+  .lb-info {
+    flex: 1; min-width: 0;
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lb-info-year { color: var(--blue-light); font-weight: 500; }
+  .lb-info-sep { margin: 0 5px; color: rgba(255,255,255,0.25); }
+
+  .lb-counter {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.04em;
+    padding: 0 4px;
+  }
+
+  .lb-close {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .lb-close:active { background: rgba(255,255,255,0.2); }
+
+  .lb-photo-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .lb-slider {
+    display: flex;
+    height: 100%;
+    transition: transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94);
+    will-change: transform;
+  }
+  .lb-slide {
+    flex-shrink: 0;
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    padding: 6px;
+  }
+  .lb-slide img {
+    max-width: 100%; max-height: 100%;
+    object-fit: contain;
+    border-radius: 3px;
+    display: block;
+  }
+  .lb-placeholder {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 12px; width: 100%; height: 100%;
+  }
+  .lb-placeholder span { font-size: 13px; color: rgba(255,255,255,0.25); }
+
+  /* Flèches centrées verticalement sur les bords */
+  .lb-arrow {
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    width: 44px; height: 64px;
+    background: transparent;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    z-index: 2;
+  }
+  .lb-arrow.prev { left: 0; }
+  .lb-arrow.next { right: 0; }
+  .lb-arrow.hidden { opacity: 0; pointer-events: none; }
+  .lb-arrow svg { width: 18px; height: 18px; stroke: rgba(255,255,255,0.55); fill: none; }
+  .lb-arrow:active svg { stroke: rgba(255,255,255,0.9); }
+
+  /* Footer légende uniquement — hauteur fixe même sans texte */
+  .lb-bottom {
+    flex-shrink: 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 24px 16px;
+  }
+  .lb-caption {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.45;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<script>
+/* ================================================================
+   COMMENT AJOUTER LE CONTENU
+   ================================================================
+
+   Chaque moment se définit comme ceci :
+
+     {
+       year:     "1958",
+       title:    "Mariage",
+       desc:     "Texte descriptif.",
+
+       // ── Contrôle de disposition ───────────────────────────
+       layout: "mixed",  // UNE SEULE VALEUR SUFFIT :
+                         //
+                         // "mixed" → mosaïque fixe pleine largeur (défaut)
+                         //   1 photo  : pleine largeur
+                         //   2 photos : grande gauche / petite droite
+                         //   3 photos : grande gauche / 2 empilées droite
+                         //   4 photos : photo1 | 2+3 empilées | photo4
+                         //   5+ photos: strip à 2 colonnes automatiquement
+                         //
+                         // UN NOMBRE → strip scrollable adaptatif
+                         //   layout: 1    1 photo pleine largeur, les autres scrollent
+                         //   layout: 2    2 photos visibles simultanément
+                         //   layout: 2.5  2 photos + aperçu de la 3e
+                         //   layout: 3    3 photos visibles simultanément
+                         //
+                         //   Fonctionne sur tous les écrans — iPhone, Android,
+                         //   tablette, portrait et paysage.
+
+       // ── Photos ───────────────────────────────────────────
+       photos: [
+         { src: "photos/img1.jpg", caption: "Légende",   position: "top"    },
+         { src: "photos/img2.jpg", caption: "",           position: "center" },
+         { src: null,              caption: "" },  // hérite du position du moment
+       ]
+     },
+
+   RÉSUMÉ :
+   ─────────────────────────────────────────────────────────────
+   layout: "mixed"  →  mosaïque fixe, pleine largeur, pas de scroll
+   layout: 2        →  strip scrollable, 2 colonnes visibles
+   layout: 2.5      →  strip scrollable, aperçu de la photo suivante visible
+   position par photo : "top" | "center" | "bottom"ment
+
+   AJOUTER UNE PHOTO :
+     Mets le fichier dans un dossier "photos/" à côté de ce HTML,
+     puis écris : src: "photos/nom.jpg"
+     URL en ligne : src: "https://..."
+     Pas encore disponible : src: null
+   ================================================================ */
+
+const MOMENTS = [
+  {
+    year: "11 décembre 1935",
+    title: "Naissance",
+    desc: "Premier souffle sur les bords du Saint-Laurent, dans une famille de cultivateurs établis depuis des générations.",
+    layout: "mixed",   // 2 photos → grande gauche / petite droite
+    position: "top",
+    photos: [
+      { src: null, caption: "" },
+      { src: null, caption: "" },
+    ]
+  },
+  {
+    year: "Années 1940",
+    title: "L'enfance sur la ferme",
+    desc: "Les saisons rythmaient tout : les semailles, les récoltes, les grands repas où toute la famille se retrouvait. C'est là qu'il a appris que nourrir les autres, c'est les aimer.",
+    layout: 1.15,      // scroll : 1 photo presque pleine largeur, aperçu de la suivante
+    position: "top",
+    photos: [
+      { src: null, caption: "" },
+      { src: null, caption: "" },
+      { src: null, caption: "" },
+    ]
+  },
+  {
+    year: "Années 1950",
+    title: "Les Bermudes",
+    desc: "Jeune homme aventurier, il part travailler aux Bermudes — une expérience qui lui ouvrira les yeux sur le monde et qu'il racontera toute sa vie.",
+    layout: "mixed",   // 1 photo → pleine largeur
+    position: "center",
+    photos: [
+      { src: null, caption: "De gauche à droite : Grand-Papa, son ami Roger, la pension où il logeait" },
+    ]
+  },
+  {
+    year: "1958",
+    title: "Mariage",
+    desc: "Union célébrée avec des dizaines de proches venus de partout. Le début d'une grande famille.",
+    layout: 2.3,       // scroll : 2 photos visibles, aperçu de la 3e croppée à droite
+    position: "top",
+    photos: [
+      { src: null, caption: "À l'église du village" },
+      { src: null, caption: "De gauche à droite : Grand-Papa, Grand-Maman, le curé Tremblay" },
+      { src: null, caption: "" },
+      { src: null, caption: "" },
+    ]
+  },
+  {
+    year: "1961 – 1963",
+    title: "Naissance de Myriam et Josée",
+    desc: "L'arrivée de Myriam puis de Josée comble la maison de rires et de vie. Il devient père avec une tendresse que tous ceux qui l'ont connu se rappellent encore.",
+    layout: "mixed",   // 2 photos → grande gauche / petite droite
+    position: "top",
+    photos: [
+      { src: null, caption: "Myriam, quelques heures après sa naissance" },
+      { src: null, caption: "" },
+    ]
+  },
+  {
+    year: "1990",
+    title: "La retraite",
+    desc: "Le jardin, la pêche dans le fleuve, et les petits-enfants. Il goûtait chaque heure avec le même appétit qu'un bon repas de famille.",
+    layout: "mixed",   // 3 photos → grande gauche / 2 empilées droite
+    position: "top",
+    photos: [
+      { src: null, caption: "" },
+      { src: null, caption: "" },
+      { src: null, caption: "" },
+    ]
+  },
+  {
+    year: "2005",
+    title: "50 ans de mariage",
+    desc: "Noces d'or célébrées entouré de toute sa famille. Un homme qui rayonnait dans le regard de ceux qu'il aimait.",
+    layout: 1.8,       // scroll : presque 2 photos visibles, la 3e croppée à droite
+    position: "center",
+    photos: [
+      { src: null, caption: "" },
+      { src: null, caption: "" },
+      { src: null, caption: "" },
+    ]
+  },
+  {
+    year: "2025",
+    title: "Célébration de ses 90 ans",
+    desc: "La famille élargie se réunit pour fêter ses 90 ans — un homme entouré d'amour, de reconnaissance, et de tous ceux à qui il avait tant donné.",
+    layout: "mixed",   // 4 photos → photo1 | 2+3 empilées | photo4
+    position: "top",
+    photos: [
+      { src: null, caption: "De gauche à droite : Myriam, Grand-Papa, Josée et leurs familles" },
+      { src: null, caption: "" },
+      { src: null, caption: "" },
+      { src: null, caption: "" },
+    ]
+  },
+  {
+    year: "2026",
+    title: "Il nous a quittés",
+    desc: "Paisiblement, entouré des siens. Ses yeux bleus clairs ont fermé, mais sa chaleur, sa générosité et son amour de la vie demeurent en chacun de nous.",
+    layout: "mixed",   // 0 photo → aucune mosaïque
+    photos: []
+  },
+];
+</script>
+
+<header class="app-header">
+  <div class="app-title">Grand-Papa</div>
+  <div class="app-sub">1935 – 2026</div>
+</header>
+
+<main class="feed" id="feed"></main>
+
+<div class="lightbox" id="lightbox">
+  <div class="lb-top">
+    <div class="lb-info">
+      <span class="lb-info-year" id="lb-year"></span>
+      <span class="lb-info-sep">—</span>
+      <span id="lb-title"></span>
+    </div>
+    <div class="lb-counter" id="lb-counter"></div>
+    <button class="lb-close" onclick="closeLightbox()">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.5" stroke-linecap="round">
+        <line x1="1.5" y1="1.5" x2="11.5" y2="11.5"/>
+        <line x1="11.5" y1="1.5" x2="1.5" y2="11.5"/>
+      </svg>
+    </button>
+  </div>
+  <div class="lb-photo-area" id="lb-photo-area">
+    <div class="lb-slider" id="lb-slider"></div>
+    <button class="lb-arrow prev" id="lb-prev" onclick="lbNavigate(-1)">
+      <svg viewBox="0 0 16 16"><polyline points="10 3 5 8 10 13" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="lb-arrow next" id="lb-next" onclick="lbNavigate(1)">
+      <svg viewBox="0 0 16 16"><polyline points="6 3 11 8 6 13" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+  <div class="lb-bottom">
+    <div class="lb-caption" id="lb-caption"></div>
+  </div>
+</div>
+
+<script>
+let lbMomentIdx = 0;
+let lbPhotoIdx  = 0;
+
+const ICON = `<div class="tile-icon">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <rect x="1" y="2.5" width="14" height="11" rx="2" stroke="#9C8E7A" stroke-width="1.2"/>
+    <circle cx="8" cy="8" r="2.5" stroke="#9C8E7A" stroke-width="1.2"/>
+  </svg></div><span class="tile-label">Photo à venir</span>`;
+
+function tile(mi, pi, p, extraClass, defaultPos) {
+  const cls = 'photo-tile' + (extraClass ? ' ' + extraClass : '');
+  const pos = p.position || defaultPos || 'top';
+  const inner = p.src
+    ? `<img src="${p.src}" alt="${p.caption||''}" style="object-position:${pos};">`
+    : ICON;
+  return `<div class="${cls}" onclick="openLightbox(${mi},${pi})">${inner}</div>`;
+}
+
+function mixedBlocks(mi, photos, defaultPos) {
+  // Découpe les photos en blocs de 3, le pattern grande+colonne se répète
+  let html = '';
+  for (let i = 0; i < photos.length; i += 3) {
+    const chunk = photos.slice(i, i + 3);
+    if (chunk.length === 1) {
+      html += `<div class="mosaic m1">${tile(mi, i, chunk[0], '', defaultPos)}</div>`;
+    } else if (chunk.length === 2) {
+      html += `<div class="mosaic m2">
+        ${tile(mi, i,   chunk[0], '', defaultPos)}
+        ${tile(mi, i+1, chunk[1], '', defaultPos)}
+      </div>`;
+    } else {
+      html += `<div class="mosaic m3">
+        ${tile(mi, i,   chunk[0], 'main', defaultPos)}
+        <div class="col">
+          ${tile(mi, i+1, chunk[1], '', defaultPos)}
+          ${tile(mi, i+2, chunk[2], '', defaultPos)}
+        </div>
+      </div>`;
+    }
+  }
+  return html;
+}
+
+function buildMosaic(mi, m) {
+  const photos = m.photos;
+  const n = photos.length;
+  if (n === 0) return '';
+
+  const defaultPos = m.position || 'top';
+  const layout     = m.layout !== undefined ? m.layout : 'mixed';
+
+  // layout est un nombre → strip scrollable adaptatif
+  // la largeur de chaque tuile = 100% / columns, calculée en vw
+  if (typeof layout === 'number') {
+    const vw = (100 / layout).toFixed(1);
+    const tiles = photos.map((p,pi) =>
+      `<div class="photo-tile strip-tile" style="width:${vw}vw;height:100%;flex-shrink:0;" onclick="openLightbox(${mi},${pi})">
+        ${p.src ? `<img src="${p.src}" alt="${p.caption||''}" style="object-position:${p.position||defaultPos};">` : ICON}
+      </div>`
+    ).join('');
+    return `<div class="strip">${tiles}</div>`;
+  }
+
+  // layout:"mixed" → mosaïque fixe pleine largeur
+  if (n === 1) {
+    return `<div class="mosaic m1">${tile(mi,0,photos[0],'',defaultPos)}</div>`;
+  }
+  if (n === 2) {
+    return `<div class="mosaic m2">
+      ${tile(mi,0,photos[0],'',defaultPos)}
+      ${tile(mi,1,photos[1],'',defaultPos)}
+    </div>`;
+  }
+  if (n === 3) {
+    return `<div class="mosaic m3">
+      ${tile(mi,0,photos[0],'main',defaultPos)}
+      <div class="col">
+        ${tile(mi,1,photos[1],'',defaultPos)}
+        ${tile(mi,2,photos[2],'',defaultPos)}
+      </div>
+    </div>`;
+  }
+  if (n === 4) {
+    return `<div class="mosaic m4-mixed">
+      ${tile(mi,0,photos[0],'main-left',defaultPos)}
+      <div class="col">
+        ${tile(mi,1,photos[1],'',defaultPos)}
+        ${tile(mi,2,photos[2],'',defaultPos)}
+      </div>
+      ${tile(mi,3,photos[3],'main-right',defaultPos)}
+    </div>`;
+  }
+
+  // mixed avec 5+ photos → strip à 2 colonnes par défaut
+  const tiles = photos.map((p,pi) =>
+    `<div class="photo-tile strip-tile" style="width:50vw;height:100%;flex-shrink:0;" onclick="openLightbox(${mi},${pi})">
+      ${p.src ? `<img src="${p.src}" alt="${p.caption||''}" style="object-position:${p.position||defaultPos};">` : ICON}
+    </div>`
+  ).join('');
+  return `<div class="strip">${tiles}</div>`;
+}
+
+function renderFeed() {
+  const feed = document.getElementById('feed');
+  MOMENTS.forEach((m, mi) => {
+    const div = document.createElement('div');
+    div.className = 'moment';
+    div.innerHTML = `
+      <div class="moment-year">${m.year}</div>
+      <div class="moment-title">${m.title}</div>
+      ${buildMosaic(mi, m)}
+      <div class="moment-desc">${m.desc}</div>`;
+    feed.appendChild(div);
+  });
+}
+
+function buildSlider(photos) {
+  document.getElementById('lb-slider').innerHTML = photos.map(p => {
+    const content = p.src
+      ? `<img src="${p.src}" alt="${p.caption||''}">`
+      : `<div class="lb-placeholder">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <rect x="2" y="5" width="32" height="26" rx="3" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+            <circle cx="18" cy="18" r="6" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+          </svg>
+          <span>Photo à venir</span>
+        </div>`;
+    return `<div class="lb-slide">${content}</div>`;
+  }).join('');
+}
+
+function setSliderPos(animated) {
+  const s = document.getElementById('lb-slider');
+  if (!animated) s.style.transition = 'none';
+  s.style.transform = `translateX(${-lbPhotoIdx * 100}%)`;
+  if (!animated) requestAnimationFrame(() => { s.style.transition = ''; });
+}
+
+function updateMeta() {
+  const m = MOMENTS[lbMomentIdx];
+  const p = m.photos[lbPhotoIdx];
+  const total = m.photos.length;
+  document.getElementById('lb-year').textContent    = m.year;
+  document.getElementById('lb-title').textContent   = m.title;
+  document.getElementById('lb-counter').textContent = total > 1 ? `${lbPhotoIdx+1} / ${total}` : '';
+  document.getElementById('lb-caption').textContent = p.caption || '';
+  document.getElementById('lb-prev').classList.toggle('hidden', lbPhotoIdx === 0);
+  document.getElementById('lb-next').classList.toggle('hidden', lbPhotoIdx === total - 1);
+}
+
+function openLightbox(mi, pi) {
+  lbMomentIdx = mi; lbPhotoIdx = pi;
+  buildSlider(MOMENTS[mi].photos);
+  setSliderPos(false);
+  updateMeta();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function lbNavigate(dir) {
+  const next = lbPhotoIdx + dir;
+  if (next < 0 || next >= MOMENTS[lbMomentIdx].photos.length) return;
+  lbPhotoIdx = next;
+  setSliderPos(true);
+  updateMeta();
+}
+
+// Swipe avec suivi du doigt en temps réel
+let tsX = 0, tcX = 0, swiping = false;
+const area     = document.getElementById('lb-photo-area');
+const sliderEl = document.getElementById('lb-slider');
+
+area.addEventListener('touchstart', e => {
+  tsX = tcX = e.touches[0].clientX;
+  swiping = true;
+  sliderEl.style.transition = 'none';
+}, { passive: true });
+
+area.addEventListener('touchmove', e => {
+  if (!swiping) return;
+  tcX = e.touches[0].clientX;
+  sliderEl.style.transform = `translateX(calc(${-lbPhotoIdx * 100}% + ${tcX - tsX}px))`;
+}, { passive: true });
+
+area.addEventListener('touchend', () => {
+  if (!swiping) return;
+  swiping = false;
+  sliderEl.style.transition = '';
+  Math.abs(tcX - tsX) > 50 ? lbNavigate(tcX - tsX < 0 ? 1 : -1) : setSliderPos(true);
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape')      closeLightbox();
+  if (e.key === 'ArrowLeft')   lbNavigate(-1);
+  if (e.key === 'ArrowRight')  lbNavigate(1);
+});
+
+renderFeed();
+</script>
+</body>
+</html>
