@@ -333,8 +333,10 @@
        //
        // scroll: false            mosaïque fixe pleine largeur (défaut)
        // scroll: true             strip scrollable horizontal
-       // scroll: 1.8              strip scrollable, 1.8 colonnes visibles à l'écran
-       //                          (nombre décimal = aperçu de la colonne suivante)
+       // scroll: 1.8              "side-by-side" : 1.8 photos visibles à l'écran
+       // scroll: 1.25             "alternating"  : 1.25 groupes visibles à l'écran
+       //                          (1 groupe = 1 grande photo + 2 empilées)
+       //                          (nombre décimal = aperçu du groupe suivant)
        //
        // weights: [60, 40]        proportions relatives des colonnes (optionnel)
        //                          fonctionne avec tous les layouts et scroll
@@ -804,7 +806,8 @@ function buildMosaic(mi, m) {
     }
 
     // ── Scrollable ──
-    const numCols = cols || 1.6;
+    // Le nombre indique combien de GROUPES sont visibles (ex: 1.25 = 1 groupe + aperçu du suivant)
+    const numCols = cols || 1.1;
     const blockW = colPx(numCols);
     let blocks = '';
     for (let i = 0, gi = 0; i < n; i += 3, gi++) {
