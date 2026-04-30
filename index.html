@@ -522,6 +522,7 @@ const MOMENTS = [
     title: "Célébration de ses 90 ans",
     desc: "La famille élargie se réunit pour fêter ses 90 ans — un homme entouré d'amour, de reconnaissance, et de tous ceux à qui il avait tant donné.",
     layout: "mixed",   // 4 photos → photo1 | 2+3 empilées | photo4
+    weights: [40, 30, 30],
     position: "top",
     photos: [
       { src: "photos/2025-90-spag-3.png", caption: "" },
@@ -702,16 +703,28 @@ function buildMosaic(mi, m) {
       </div>
     </div>`;
   }
-  if (n === 3) {
-    const f = flexVal([54, 23, 23]);
-    return `<div class="mosaic" style="height:var(--H);display:flex;gap:3px;margin:0 0 14px -24px;padding-left:24px;overflow:hidden;">
-      <div class="photo-tile" style="flex:${f[0]};height:100%;" onclick="openLightbox(${mi},0)">${photos[0].src ? `<img src="${photos[0].src}" style="object-position:${photos[0].position||defaultPos};">` : ICON}</div>
-      <div style="flex:${f[1]+f[2]};display:flex;flex-direction:column;gap:3px;">
-        <div class="photo-tile" style="flex:${w ? w[1]/(w[1]+w[2])*100 : 50}%;width:100%;" onclick="openLightbox(${mi},1)">${photos[1].src ? `<img src="${photos[1].src}" style="object-position:${photos[1].position||defaultPos};">` : ICON}</div>
-        <div class="photo-tile" style="flex:${w ? w[2]/(w[1]+w[2])*100 : 50}%;width:100%;" onclick="openLightbox(${mi},2)">${photos[2].src ? `<img src="${photos[2].src}" style="object-position:${photos[2].position||defaultPos};">` : ICON}</div>
+if (n === 3) {
+  // f[0] = Largeur colonne gauche
+  // f[1] + f[2] = Largeur totale colonne droite
+  const f = flexVal([54, 23, 23]); 
+  
+  return `<div class="mosaic" style="height:var(--H);display:flex;gap:3px;margin:0 0 14px -24px;padding-left:24px;overflow:hidden;">
+    <!-- COLONNE GAUCHE -->
+    <div class="photo-tile" style="flex:${f[0]}; min-width:0; height:100%;" onclick="openLightbox(${mi},0)">
+      ${photos[0].src ? `<img src="${photos[0].src}" style="object-position:${photos[0].position||defaultPos};">` : ICON}
+    </div>
+
+    <!-- COLONNE DROITE (Conteneur vertical) -->
+    <div style="flex:${f[1]+f[2]}; min-width:0; display:flex; flex-direction:column; gap:3px;">
+      <div class="photo-tile" style="flex:1;" onclick="openLightbox(${mi},1)">
+        ${photos[1].src ? `<img src="${photos[1].src}" style="object-position:${photos[1].position||defaultPos};">` : ICON}
       </div>
-    </div>`;
-  }
+      <div class="photo-tile" style="flex:1;" onclick="openLightbox(${mi},2)">
+        ${photos[2].src ? `<img src="${photos[2].src}" style="object-position:${photos[2].position||defaultPos};">` : ICON}
+      </div>
+    </div>
+  </div>`;
+}
   if (n === 4) {
     const f = flexVal([38, 12, 12, 38]);
     return `<div class="mosaic" style="height:var(--H);display:flex;gap:3px;margin:0 0 14px -24px;padding-left:24px;overflow:hidden;">
