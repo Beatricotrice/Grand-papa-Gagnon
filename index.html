@@ -389,20 +389,19 @@ const MOMENTS = [
     year: "Années 1940",
     title: "Une grande famille sur la ferme",
     desc: "Les saisons rythmaient tout : les semailles, les récoltes, les grands repas où toute la famille se retrouvait. C'est là qu'il a appris que nourrir les autres, c'est les aimer.",
-    layout: "side-by-side", scroll: 1.2,
-    position: "top",
+    layout: "side-by-side", scroll: 3.2,
     photos: [
-      { src: "photos/1940X-freres-1.jpeg", caption: "Germain, Gilbert et Roger à Rivière-Ouelle" },
-      { src: "photos/etable-neuve.jpeg", caption: "" },
+      { src: "photos/1940X-freres-1.jpeg", caption: "Germain, Gilbert et Roger à Rivière-Ouelle", position: "left center" },
+      { src: "photos/1940.jpeg", caption: "Germain, Raymond, Gilbert, Bertrand, Roger", position: "right center" },
+      { src: "photos/vieille-grange.jpeg", caption: "" },
       { src: "photos/moutons.jpeg", caption: "" },
-      { src: "photos/1940.jpeg", caption: "Germain, Raymond, Gilbert, Bertrand, Roger" },
     ]
   },
  {
     year: "1951 – 1953",
     title: "École technique à Rimouski",
     desc: "Gilbert fait son cours métiers à l'École technique de Rimouski.",
-    layout: "side-by-side", scroll: 1.7,
+    layout: "side-by-side", scroll: 1.5,
     position: "top",
     photos: [
      { src: "photos/1951-rimouski-2.jpeg", caption: "" }, 
@@ -416,11 +415,10 @@ const MOMENTS = [
     title: "Technique B",
     desc: "Un autre cours",
     layout: "side-by-side", scroll: false,
-    position: "top",
     photos: [
-      { src: "photos/1955-rimouski.jpeg", caption: "" },
+       { src: "photos/1954-55-etudes.jpeg", caption: "Gilbert est dans la rangée du bas, complètement à droite" },
+      { src: "photos/1955-rimouski.jpeg", caption: "", position: "center top" },
       { src: "photos/1955X-kamouraska.jpeg", caption: "" },
-      { src: "photos/1954-55-etudes.jpeg", caption: "Gilbert est dans la rangée du bas, complètement à droite" },
     ]
   },
 
@@ -500,12 +498,20 @@ const MOMENTS = [
     year: "À partir de 1989",
     title: "Il devient grand-papa!",
     desc: "Et oui, la famille s'agrandit encore!",
-    layout: "side-by-side", scroll: 1.5,
+    layout: "side-by-side", scroll: 1.4,
     position: "center",
     photos: [
+     { src: "photos/1989-alexandre.jpeg", caption: "Naissance d'Alexandre" },
+      { src: "photos/1990X-bapteme-samuel.jpeg", caption: "Baptême de Samuel" },
+           { src: "photos/1994-avril.jpeg", caption: "" },
+     { src: "photos/1997X.jpeg", caption: "" },
+     { src: "photos/1998-aout-quai.jpeg", caption: "" },
       { src: "photos/1995-septembre.jpeg", caption: "" },
       { src: "photos/1997-noel.jpeg", caption: "" },
-      { src: "photos/1990X-bapteme-samuel.jpeg", caption: "Baptême de Samuel" },
+           { src: "photos/1998-mars.jpeg", caption: "Avec Timothée, Béatrice, Samuel, Émilie et Alexandre" },
+           { src: "photos/1998-aout-beatrice.jpeg", caption: "Avec Béatrice" },
+
+
     ]
   },
  
@@ -513,12 +519,13 @@ const MOMENTS = [
     year: "À partir de 2017",
     title: "Arrière-grand-papa",
     desc: "Noces d'or célébrées entouré de toute sa famille. Un homme qui rayonnait dans le regard de ceux qu'il aimait.",
-    layout: "side-by-side", scroll: 1.8,
+    layout: "side-by-side", scroll: 1.1,
     position: "center",
     photos: [
       { src: "photos/2025X.png", caption: "" },
-      { src: "photos/2025-olivier.jpg", caption: "" },
-      { src: null, caption: "" },
+      { src: "photos/2025-olivier.jpg", caption: "Alexandre, Olivier et Gilbert" },
+      { src: "photos/charlands.jpeg", caption: "Colin, Axelle et Alec" },
+      { src: "photos/noemie.JPEG", caption: "Avec Noémie" },
     ]
   },
   {
@@ -527,11 +534,10 @@ const MOMENTS = [
     desc: "La famille élargie se réunit pour fêter ses 90 ans — un homme entouré d'amour, de reconnaissance, et de tous ceux à qui il avait tant donné.",
     layout: "side-by-side", scroll: false,
     weights: [40, 30, 30],
-    position: "top",
     photos: [
-      { src: "photos/2025-90-spag-3.png", caption: "" },
+      { src: "photos/2025-90-spag-3.png", caption: "Fête surprise au restaurant", position: "40% 40%" },
       { src: "photos/2025-90-resto.jpg", caption: "" },
-      { src: "photos/2025-90-spag.jpg", caption: "" },
+      { src: "photos/2025-90-spag.jpg", caption: "Dîner chez Myriam avec toute la famille" },
     ]
   },
   {
