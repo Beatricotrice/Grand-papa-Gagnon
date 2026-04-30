@@ -386,7 +386,7 @@ const MOMENTS = [
     year: "Années 1940",
     title: "Une grande famille sur la ferme",
     desc: "Les saisons rythmaient tout : les semailles, les récoltes, les grands repas où toute la famille se retrouvait. C'est là qu'il a appris que nourrir les autres, c'est les aimer.",
-    layout: "side-by-side", scroll: 1.2,
+    layout: "alternating", scroll: 1.2,
     position: "top",
     photos: [
       { src: "photos/1940X-freres-1.jpeg", caption: "Germain, Gilbert et Roger à Rivière-Ouelle" },
@@ -412,12 +412,12 @@ const MOMENTS = [
     year: "1954 – 1955",
     title: "Technique B",
     desc: "Un autre cours",
-    layout: "side-by-side", scroll: false,
-    position: "top",
+    layout: "alternating", scroll: false,
+     weights: [60, 20, 20],
     photos: [
-      { src: "photos/1955-rimouski.jpeg", caption: "" },
-      { src: "photos/1955X-kamouraska.jpeg", caption: "" },
       { src: "photos/1954-55-etudes.jpeg", caption: "Gilbert est dans la rangée du bas, complètement à droite" },
+      { src: "photos/1955-rimouski.jpeg", caption: "", position: "center top" },
+      { src: "photos/1955X-kamouraska.jpeg", caption: "" },
     ]
   },
 
@@ -461,8 +461,8 @@ const MOMENTS = [
     weights: [35, 65],
     position: "center",
     photos: [
-      { src: "1960-mariage.jpeg", caption: "" },
-      { src: "photos/1960-mariage-3.jpeg", caption: "" },
+      { src: "1960-mariage.jpeg", caption: "", position: "40% center" },
+      { src: "photos/1960-mariage-3.jpeg", caption: "", position: "center bottom" },
     ]
   },
 
@@ -519,13 +519,13 @@ const MOMENTS = [
     year: "2025",
     title: "Célébration de ses 90 ans",
     desc: "La famille élargie se réunit pour fêter ses 90 ans — un homme entouré d'amour, de reconnaissance, et de tous ceux à qui il avait tant donné.",
-    layout: "side-by-side", scroll: false,
+    layout: "alternating", scroll: false,
     weights: [40, 30, 30],
     position: "top",
     photos: [
-      { src: "photos/2025-90-spag-3.png", caption: "" },
-      { src: "photos/2025-90-resto.jpg", caption: "" },
-      { src: "photos/2025-90-spag.jpg", caption: "" },
+      { src: "photos/2025-90-spag-3.png", caption: "", position: "left center" },
+      { src: "photos/2025-90-resto.jpg", caption: "", position: "center center" },
+      { src: "photos/2025-90-spag.jpg", caption: "", position: "center 35%" },
     ]
   },
   {
