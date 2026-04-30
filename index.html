@@ -383,8 +383,8 @@ const MOMENTS = [
     layout: 1.7,   // 1 photo → pleine largeur
     position: "top",
     photos: [
-      { src: "photos/1951-53-finissants-rimouski-1.jpeg", caption: "" },
-      { src: "photos/1951-rimouski-2.jpeg", caption: "" },
+     { src: "photos/1951-rimouski-2.jpeg", caption: "" }, 
+     { src: "photos/1951-53-finissants-rimouski-1.jpeg", caption: "" },
       { src: "photos/1951-rimouski.jpeg", caption: "" },
     ]
   },
@@ -393,12 +393,13 @@ const MOMENTS = [
     year: "1954 – 1955",
     title: "Technique B",
     desc: "Un autre cours",
-    layout: 2.3,       // scroll : 2 photos visibles, aperçu de la 3e croppée à droite
+    layout: "mixed",       // scroll : 2 photos visibles, aperçu de la 3e croppée à droite
     position: "top",
     photos: [
-      { src: "photos/1955-rimouski.jpeg", caption: "" },
       { src: "photos/1955X-autoderision.jpeg", caption: "Gilbert et son sens d'autodérision" },
+      { src: "photos/1955-rimouski.jpeg", caption: "" },
       { src: "photos/1955X-kamouraska.jpeg", caption: "" },
+      { src: "photos/1954-55-etudes.jpeg", caption: "Gilbert est dans la rangée du bas, complètement à droite" },
     ]
   },
 
@@ -406,7 +407,7 @@ const MOMENTS = [
     year: "1956",
     title: "Monique",
     desc: "Gilbert arrive à Beauharnois pour le travail. Il est invité à l'anniversaire de Monique, et c'est le début d'une belle histoire d'amour. Gilbert rencontre la belle-famille.",
-    layout: 1.3,   // 2 photos → grande gauche / petite droite
+    layout: 1.4,   // 2 photos → grande gauche / petite droite
     position: "top",
     photos: [
       { src: "photos/1956-8X-1.jpeg", caption: "" },
@@ -424,10 +425,10 @@ const MOMENTS = [
     position: "top",
     photos: [
       { src: "photos/1956-pontiac.jpeg", caption: "" },
-      { src: "photos/1956-8X.jpeg", caption: "" },
-      { src: "photos/1957-riviere-ouelle.jpeg", caption: "" },
-      { src: "photos/1957-famille.jpeg", caption: "" },
-      { src: "photos/1958.jpeg", caption: "" },
+      { src: "photos/1956-8X.jpeg", caption: "Elzéar, Marie-Anna, Monique, Gilbert et les jumelles Diane et Micheline à l'oratoire St-Joseph" },
+      { src: "photos/1957-riviere-ouelle.jpeg", caption: "À Rivière-Ouelle" },
+      { src: "photos/1957-famille.jpeg", caption: "Gilbert, Monique, Germain, Thérèse, Raymond et Jean-Guy à La Pocatière" },
+      { src: "photos/1958.jpeg", caption: "Probablement chez Rémi Tardif, à Ste-Louise." },
       { src: "photos/1957-aout-grange.jpeg", caption: "" },
       { src: "photos/1956-villamaria.jpeg", caption: "" },
       { src: "photos/1956X-villamaria.jpeg", caption: "" },
@@ -439,6 +440,7 @@ const MOMENTS = [
     title: "Mariage",
     desc: "Le mariage se fait à l'église St-Clément.",
     layout: "mixed",   // 2 photos → grande gauche / petite droite
+    weights: [1, 2],
     position: "center",
     photos: [
       { src: "1960-mariage.jpeg", caption: "" },
