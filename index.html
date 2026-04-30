@@ -340,7 +340,10 @@
        //                          fonctionne avec tous les layouts et scroll
        //                          "side-by-side" 2 photos : [gauche, droite]
        //                          "side-by-side" 3 photos : [grande, haut, bas]
-       //                          "alternating"            : [grande, côté]
+       //                          "alternating" uniforme   : [grande, côté]
+       //                          "alternating" par groupe : [[65,35],[50,50],[70,30]]
+       //                            → un tableau par groupe de 3 photos
+       //                            → le dernier weights est réutilisé si moins de groupes définis
        //
        // ── Photos ───────────────────────────────────────────
        photos: [
@@ -386,7 +389,7 @@ const MOMENTS = [
     year: "Années 1940",
     title: "Une grande famille sur la ferme",
     desc: "Les saisons rythmaient tout : les semailles, les récoltes, les grands repas où toute la famille se retrouvait. C'est là qu'il a appris que nourrir les autres, c'est les aimer.",
-    layout: "alternating", scroll: 1.2,
+    layout: "side-by-side", scroll: 1.2,
     position: "top",
     photos: [
       { src: "photos/1940X-freres-1.jpeg", caption: "Germain, Gilbert et Roger à Rivière-Ouelle" },
@@ -412,12 +415,12 @@ const MOMENTS = [
     year: "1954 – 1955",
     title: "Technique B",
     desc: "Un autre cours",
-    layout: "alternating", scroll: false,
-     weights: [60, 40, 40],
+    layout: "side-by-side", scroll: false,
+    position: "top",
     photos: [
-      { src: "photos/1954-55-etudes.jpeg", caption: "Gilbert est dans la rangée du bas, complètement à droite" },
-      { src: "photos/1955-rimouski.jpeg", caption: "", position: "center top" },
+      { src: "photos/1955-rimouski.jpeg", caption: "" },
       { src: "photos/1955X-kamouraska.jpeg", caption: "" },
+      { src: "photos/1954-55-etudes.jpeg", caption: "Gilbert est dans la rangée du bas, complètement à droite" },
     ]
   },
 
@@ -461,8 +464,8 @@ const MOMENTS = [
     weights: [35, 65],
     position: "center",
     photos: [
-      { src: "1960-mariage.jpeg", caption: "", position: "40% center" },
-      { src: "photos/1960-mariage-3.jpeg", caption: "", position: "center bottom" },
+      { src: "1960-mariage.jpeg", caption: "" },
+      { src: "photos/1960-mariage-3.jpeg", caption: "" },
     ]
   },
 
@@ -519,13 +522,13 @@ const MOMENTS = [
     year: "2025",
     title: "Célébration de ses 90 ans",
     desc: "La famille élargie se réunit pour fêter ses 90 ans — un homme entouré d'amour, de reconnaissance, et de tous ceux à qui il avait tant donné.",
-    layout: "alternating", scroll: false,
+    layout: "side-by-side", scroll: false,
     weights: [40, 30, 30],
     position: "top",
     photos: [
-      { src: "photos/2025-90-spag-3.png", caption: "", position: "left center" },
-      { src: "photos/2025-90-resto.jpg", caption: "", position: "center center" },
-      { src: "photos/2025-90-spag.jpg", caption: "", position: "center 35%" },
+      { src: "photos/2025-90-spag-3.png", caption: "" },
+      { src: "photos/2025-90-resto.jpg", caption: "" },
+      { src: "photos/2025-90-spag.jpg", caption: "" },
     ]
   },
   {
@@ -714,29 +717,39 @@ function buildMosaic(mi, m) {
 
     // ── Scrollable ──
     // cols = nombre de colonnes visibles (ex: 1.8 → aperçu de la suivante)
+    // weights est ignoré ici — toutes les tuiles ont la même largeur.
+    // Utilise scroll: 1.4 vs 1.8 pour contrôler combien de photos sont visibles.
     const numCols = cols || 1.5;
     const tileW = colPx(numCols);
-    // Proportions custom via weights
-    const totalW = w ? w.reduce((a,b)=>a+b,0) : null;
-    let tiles = '';
-    photos.forEach((p, pi) => {
-      const w_px = w ? Math.round(tileW * w[pi] / totalW * numCols) : tileW;
-      tiles += pxTile(pi, p, w_px);
-    });
+    const tiles = photos.map((p, pi) => pxTile(pi, p, tileW)).join('');
     return stripWrap(tiles);
   }
 
   // ── LAYOUT : alternating ──────────────────────────────────
   // Groupes de 3 : 1 grande photo + 2 empilées à droite.
   // Le dernier groupe peut avoir 1 ou 2 photos.
+  //
+  // weights peut être :
+  //   [65, 35]              → même proportion pour tous les groupes
+  //   [[65,35],[50,50]]     → proportion par groupe (tableau de tableaux)
   if (layout === 'alternating') {
 
-    // Proportions grande/côté via weights[0]/weights[1] (défaut 58/42)
-    const mainRatio = w ? w[0]/(w[0]+w[1]) : 0.58;
+    // Résout le ratio grande/côté pour un groupe donné (index du groupe)
+    function groupRatio(groupIdx) {
+      if (!w) return 0.58;
+      // Tableau de tableaux : weights: [[65,35],[50,50],...]
+      if (Array.isArray(w[0])) {
+        const gw = w[groupIdx] || w[w.length - 1]; // dernier groupe = dernier weights
+        return gw[0] / (gw[0] + gw[1]);
+      }
+      // Tableau simple : weights: [65,35] → uniforme
+      return w[0] / (w[0] + w[1]);
+    }
 
     // Génère un groupe de photos en px (utilisé pour fixe ET scroll)
-    function altGroup(startIdx, chunk, blockW) {
+    function altGroup(startIdx, chunk, blockW, groupIdx) {
       const gap = GAP;
+      const mainRatio = groupRatio(groupIdx);
       if (chunk.length === 1) {
         return pxTile(startIdx, chunk[0], blockW);
       }
@@ -769,15 +782,14 @@ function buildMosaic(mi, m) {
 
     if (!isScroll) {
       // ── Fixe : tous les groupes côte à côte dans la largeur dispo ──
-      // On calcule la largeur de chaque groupe en divisant la largeur totale
       const totalGroups = Math.ceil(n / 3);
       const screenW = Math.min(window.innerWidth, 480);
       const totalAvail = screenW - 24 - GAP * (totalGroups - 1);
       const blockW = Math.floor(totalAvail / totalGroups);
       let inner = '';
-      for (let i = 0; i < n; i += 3) {
+      for (let i = 0, gi = 0; i < n; i += 3, gi++) {
         if (i > 0) inner += spacer(GAP);
-        inner += altGroup(i, photos.slice(i, i+3), blockW);
+        inner += altGroup(i, photos.slice(i, i+3), blockW, gi);
       }
       return fixedWrap(inner);
     }
@@ -786,8 +798,8 @@ function buildMosaic(mi, m) {
     const numCols = cols || 1.6;
     const blockW = colPx(numCols);
     let blocks = '';
-    for (let i = 0; i < n; i += 3) {
-      blocks += altGroup(i, photos.slice(i, i+3), blockW);
+    for (let i = 0, gi = 0; i < n; i += 3, gi++) {
+      blocks += altGroup(i, photos.slice(i, i+3), blockW, gi);
     }
     return stripWrap(blocks);
   }
