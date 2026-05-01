@@ -391,37 +391,30 @@ const MOMENTS = [
     year: "Années 1940",
     title: "Une fratrie de quatorze",
     desc: "Apprendre la solidarité et le travail acharné au cœur de la ferme familiale.",
-    layout: "side-by-side", scroll: 1.3,
+    layout: "alternating", scroll: 1.3,
     photos: [
-      { src: "photos/1941.png", caption: "" },
-      { src: "photos/1940X-freres-1.jpeg", caption: "Germain, Gilbert et Roger à Rivière-Ouelle", position: "left center" },
-      { src: "photos/1940.jpeg", caption: "Germain, Raymond, Gilbert, Bertrand, Roger", position: "right center" },
+       { src: "photos/1940X-riviere-ouelle.jpg", caption: "Gilbert et Roger", position: "left 30%" },
+
+      { src: "photos/1941-famille.jpg", caption: "" },
+       { src: "photos/1941-famille-legende.jpg", caption: "" },
+      { src: "photos/1948-mai.jpg", caption: "" },
+      { src: "photos/moutons.jpg", caption: "" },
       { src: "photos/vieille-grange.jpeg", caption: "" },
-      { src: "photos/moutons.jpeg", caption: "", position: "40% 50%" },
+      { src: "photos/1949-50.jpg", caption: "", position: "center 30%" },
     ]
   },
  {
     year: "1951 – 1955",
     title: "Forger son avenir",
     desc: "Études à Rimouski et perfectionnement technique pour tracer son propre chemin.",
-    layout: "side-by-side", scroll: 1.5,
+    layout: "side-by-side", scroll: 1.7,
     position: "top",
     photos: [
      { src: "photos/1951-rimouski-2.jpeg", caption: "" }, 
      { src: "photos/1951-53-finissants-rimouski-1.jpeg", caption: "" },
       { src: "photos/1951-rimouski.jpeg", caption: "" },
-    ]
-  },
-
-{
-    year: "1954 – 1955",
-    title: "Technique B",
-    desc: "Un autre cours",
-    layout: "alternating", scroll: false,
-    photos: [
-       { src: "photos/1954-55-etudes.jpeg", caption: "Gilbert est dans la rangée du bas, complètement à droite", position: "right bottom" },
+     { src: "photos/1954-55-etudes.jpeg", caption: "Gilbert est dans la rangée du bas, complètement à droite", position: "right bottom" },
       { src: "photos/1955-rimouski.jpeg", caption: "", position: "center top" },
-      { src: "photos/1955X-kamouraska.jpeg", caption: "", position: "left top" },
     ]
   },
 
@@ -579,7 +572,11 @@ const MOMENTS = [
     title: "Le temps des loisirs",
     desc: "Installé en résidence, il profitait de chaque instant pour faire ses mots-croisés et gagner ses dernières parties de cartes.",
     layout: "side-by-side", scroll: false,
-    photos: []
+    weights: [40, 60],
+    photos: [
+     { src: "photos/2026-residences.jpg", caption: "", position: "center top" },
+      { src: "photos/20260residences.jpeg", caption: "", position: "right center" },
+    ]
   },
 
  
