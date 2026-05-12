@@ -309,6 +309,85 @@
   .lightbox.immersive .lb-slide { padding: 0; }
   .lb-slide { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .lb-slide img { touch-action: pinch-zoom; user-select: none; }
+
+  /* ══════════════════════════════════════════════
+     DESKTOP — breakpoint 768px
+     Contenu centré, 680px max, mosaïques plus hautes,
+     strips scrollables remplacés par des grilles fixes.
+  ══════════════════════════════════════════════ */
+  @media (min-width: 768px) {
+    :root {
+      --H: 380px;
+    }
+
+    body {
+      /* Fond étendu pleine largeur, contenu centré */
+    }
+
+    .app-header {
+      padding: 72px 0 28px;
+      max-width: 680px;
+      margin: 0 auto;
+      /* Le border-bottom doit couvrir toute la largeur */
+      position: relative;
+    }
+    /* Ligne séparatrice pleine largeur */
+    .app-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100vw;
+      height: 0.5px;
+      background: var(--divider);
+    }
+
+    .app-title { font-size: 38px; }
+    .app-sub   { font-size: 14px; margin-top: 7px; }
+
+    .feed { max-width: 680px; margin: 0 auto; }
+
+    /* Sur desktop, .moment n'a plus de padding latéral asymétrique —
+       le centrage est géré par .feed. On garde un padding uniforme. */
+    .moment { padding: 40px 0 0; }
+
+    .moment-year  { font-size: 12px; }
+    .moment-title { font-size: 22px; margin-bottom: 18px; }
+    .moment-desc  { font-size: 15px; padding-bottom: 40px; }
+
+    /* Les mosaïques n'ont plus besoin de s'échapper du padding —
+       le feed est déjà à 680px, on retire le margin-left négatif. */
+    .mosaic, .strip {
+      margin-left: 0;
+      padding-left: 0;
+    }
+    .strip {
+      margin-right: 0;
+      /* Les strips deviennent des grilles fixes — pas de scroll */
+      overflow-x: hidden;
+      flex-wrap: wrap;
+      height: auto;
+      gap: 4px;
+    }
+    .strip-end { display: none; }
+
+    /* Hover subtil sur les tuiles en desktop */
+    .photo-tile {
+      transition: opacity 0.18s, transform 0.18s;
+    }
+    .photo-tile:hover {
+      opacity: 0.92;
+      transform: scale(1.008);
+    }
+    .photo-tile:active { opacity: 0.75; transform: none; }
+
+    /* Lightbox : flèches plus grandes et mieux placées sur desktop */
+    .lb-arrow { width: 80px; height: 120px; }
+    .lb-arrow svg { width: 22px; height: 22px; }
+    .lb-top { padding: 20px 20px 10px; }
+    .lb-info { font-size: 13px; }
+  }
 </style>
 </head>
 <body>
@@ -684,14 +763,22 @@ function buildMosaic(mi, m) {
   const w          = m.weights;
   const GAP        = 3; // px — gap uniforme partout
 
-  // Normalise scroll : false | true | nombre
-  // false → fixe, true → scroll colonnes égales, nombre → scroll N colonnes visibles
-  const isScroll   = scroll !== false;
+  // Breakpoint desktop
+  const isDesktop  = window.innerWidth >= 768;
+
+  // En mode desktop, on force tout en mode fixe (pas de scroll)
+  const isScroll   = isDesktop ? false : (scroll !== false);
   const cols       = typeof scroll === 'number' ? scroll : (scroll === true ? n : null);
 
   // ── Helpers ───────────────────────────────────────────────
 
-  // Largeur d'une colonne dans un strip, en tenant compte du GAP entre colonnes visibles
+  // Largeur disponible selon le contexte
+  function availWidth() {
+    if (isDesktop) return Math.min(window.innerWidth - 48, 680); // colonne centrée 680px
+    return window.innerWidth - 24; // mobile : padding 24px gauche seulement
+  }
+
+  // Largeur d'une colonne dans un strip mobile, en tenant compte du GAP entre colonnes visibles
   function colPx(numCols) {
     const screenW = Math.min(window.innerWidth, 480);
     return Math.round((screenW - 24 - GAP * (numCols - 1)) / numCols);
@@ -725,22 +812,96 @@ function buildMosaic(mi, m) {
     return src.map(v => v / total * 100);
   }
 
-  // Conteneur mosaïque fixe (pleine largeur, pas de scroll)
+  // Conteneur mosaïque fixe
   function fixedWrap(inner) {
+    if (isDesktop) {
+      // Desktop : dans la colonne centrée, pas de margin négatif
+      return `<div style="height:var(--H);display:flex;gap:${GAP}px;margin:0 0 18px 0;overflow:hidden;border-radius:3px;">${inner}</div>`;
+    }
+    // Mobile : s'échappe du padding pour aller bord à bord
     return `<div style="height:var(--H);display:flex;gap:${GAP}px;margin:0 0 14px -24px;padding-left:24px;overflow:hidden;">${inner}</div>`;
   }
 
-  // Conteneur strip scrollable
+  // Conteneur strip scrollable (mobile uniquement — desktop utilise fixedWrap)
   function stripWrap(inner) {
     return `<div class="strip" style="gap:${GAP}px;">${inner}<div class="strip-end"></div></div>`;
+  }
+
+  // ── Grille desktop pour les strips ────────────────────────
+  // Convertit N photos en grille fixe 2 rangées max
+  // Jusqu'à 4 photos → 1 rangée, 5+ → 2 rangées
+  function desktopGrid(photos) {
+    const count = photos.length;
+    const H = 380; // valeur de --H en desktop
+    if (count === 1) {
+      return fixedWrap(flexTile(0, photos[0], 1));
+    }
+    if (count === 2) {
+      return fixedWrap(
+        flexTile(0, photos[0], 1) +
+        flexTile(1, photos[1], 1)
+      );
+    }
+    if (count === 3) {
+      return fixedWrap(
+        flexTile(0, photos[0], 1) +
+        flexTile(1, photos[1], 1) +
+        flexTile(2, photos[2], 1)
+      );
+    }
+    if (count === 4) {
+      return fixedWrap(
+        flexTile(0, photos[0], 1) +
+        flexTile(1, photos[1], 1) +
+        flexTile(2, photos[2], 1) +
+        flexTile(3, photos[3], 1)
+      );
+    }
+    // 5+ photos : 2 rangées
+    const rowCount = Math.ceil(count / 2);
+    const rowH = Math.floor((H - GAP) / 2);
+    const row1 = photos.slice(0, rowCount);
+    const row2 = photos.slice(rowCount);
+    const makeRow = (rowPhotos, startIdx) =>
+      `<div style="display:flex;gap:${GAP}px;height:${rowH}px;">` +
+      rowPhotos.map((p, i) => {
+        const pos = p.position || defaultPos;
+        const inner = p.src ? `<img src="${p.src}" style="object-position:${pos};">` : ICON;
+        return `<div class="photo-tile" style="flex:1;min-width:0;height:100%;" onclick="openLightbox(${mi},${startIdx+i})">${inner}</div>`;
+      }).join('') +
+      `</div>`;
+    return `<div style="display:flex;flex-direction:column;gap:${GAP}px;margin:0 0 18px 0;border-radius:3px;overflow:hidden;">` +
+      makeRow(row1, 0) +
+      makeRow(row2, rowCount) +
+    `</div>`;
   }
 
   // ── LAYOUT : side-by-side ─────────────────────────────────
   // Toutes les photos côte à côte horizontalement.
   if (layout === 'side-by-side') {
 
+    // Desktop : grille fixe pour tous les cas (remplace le scroll)
+    if (isDesktop) {
+      // Pour 2–4 photos avec weights définis, on respecte les proportions
+      if (n === 1) return fixedWrap(flexTile(0, photos[0], 1));
+      if (n === 2) {
+        const f = flexWeights([58, 42]);
+        return fixedWrap(flexTile(0, photos[0], f[0]) + flexTile(1, photos[1], f[1]));
+      }
+      if (n === 3) {
+        const f = flexWeights([40, 30, 30]);
+        return fixedWrap(
+          flexTile(0, photos[0], f[0]) +
+          flexTile(1, photos[1], f[1]) +
+          flexTile(2, photos[2], f[2])
+        );
+      }
+      // 4+ → grille desktop
+      return desktopGrid(photos);
+    }
+
     if (!isScroll) {
-      // ── Fixe ──
+      // ── Fixe mobile ──
       if (n === 1) {
         return fixedWrap(flexTile(0, photos[0], 1));
       }
@@ -781,10 +942,7 @@ function buildMosaic(mi, m) {
       // 5+ → strip scrollable automatiquement (trop pour tenir fixe)
     }
 
-    // ── Scrollable ──
-    // cols = nombre de colonnes visibles (ex: 1.8 → aperçu de la suivante)
-    // weights est ignoré ici — toutes les tuiles ont la même largeur.
-    // Utilise scroll: 1.4 vs 1.8 pour contrôler combien de photos sont visibles.
+    // ── Scrollable mobile ──
     const numCols = cols || 1.5;
     const tileW = colPx(numCols);
     const tiles = photos.map((p, pi) => pxTile(pi, p, tileW)).join('');
@@ -799,6 +957,11 @@ function buildMosaic(mi, m) {
   //   [65, 35]              → même proportion pour tous les groupes
   //   [[65,35],[50,50]]     → proportion par groupe (tableau de tableaux)
   if (layout === 'alternating') {
+
+    // Desktop : grille fixe
+    if (isDesktop) {
+      return desktopGrid(photos);
+    }
 
     // Résout le ratio grande/côté pour un groupe donné (index du groupe)
     function groupRatio(groupIdx) {
